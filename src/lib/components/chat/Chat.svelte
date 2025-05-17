@@ -43,6 +43,8 @@
 		copyToClipboard,
 		getMessageContentParts,
 		createMessagesList,
+		removeAllDetails,
+		removeAllToolCalls,
 		extractSentencesForAudio,
 		promptTemplate,
 		splitStream,
@@ -1265,7 +1267,11 @@
 	const submitPrompt = async (userPrompt, { _raw = false } = {}) => {
 		console.log('submitPrompt', userPrompt, $chatId);
 
-		const messages = createMessagesList(history, history.currentId);
+		const messages = createMessagesList(history, history.currentId).map(message => ({
+				...message,
+				content: removeAllDetails(message.content)
+			}));
+		console.log('messages', messages);
 		const _selectedModels = selectedModels.map((modelId) =>
 			$models.map((m) => m.id).includes(modelId) ? modelId : ''
 		);
@@ -1378,7 +1384,7 @@
 
 		let _chatId = JSON.parse(JSON.stringify($chatId));
 		_history = JSON.parse(JSON.stringify(_history));
-
+		console.log("History", _history);
 		const responseMessageIds: Record<PropertyKey, string> = {};
 		// If modelId is provided, use it, else use selected model
 		let selectedModelIds = modelId
@@ -1407,6 +1413,7 @@
 				};
 
 				// Add message to history and Set currentId to messageId
+				
 				history.messages[responseMessageId] = responseMessage;
 				history.currentId = responseMessageId;
 
@@ -1507,7 +1514,8 @@
 		const chatMessageFiles = chatMessages
 			.filter((message) => message.files)
 			.flatMap((message) => message.files);
-
+		
+		
 		// Filter chatFiles to only include files that are in the chatMessageFiles
 		chatFiles = chatFiles.filter((item) => {
 			const fileExists = chatMessageFiles.some((messageFile) => messageFile.id === item.id);
@@ -1565,7 +1573,7 @@
 				: undefined,
 			...createMessagesList(_history, responseMessageId).map((message) => ({
 				...message,
-				content: processDetails(message.content)
+				content: processDetails(removeAllDetails(message.content))
 			}))
 		].filter((message) => message);
 
