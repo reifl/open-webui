@@ -1649,6 +1649,7 @@ async def process_chat_response(
                                             tool_call_index = delta_tool_call.get(
                                                 "index"
                                             )
+                                            tool_call_index = len(delta_tool_calls)
 
                                             if tool_call_index is not None:
                                                 # Check if the tool call already exists

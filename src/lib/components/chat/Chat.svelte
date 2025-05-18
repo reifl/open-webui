@@ -44,7 +44,6 @@
 		getMessageContentParts,
 		createMessagesList,
 		removeAllDetails,
-		removeAllToolCalls,
 		extractSentencesForAudio,
 		promptTemplate,
 		splitStream,
