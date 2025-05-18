@@ -620,6 +620,8 @@ def apply_params_to_form_data(form_data, model):
 
         if "keep_alive" in params:
             form_data["keep_alive"] = params["keep_alive"]
+        if "historyMessage" in params:
+            form_data["historyMessage"] = params["historyMessage"]
     else:
         if "seed" in params and params["seed"] is not None:
             form_data["seed"] = params["seed"]

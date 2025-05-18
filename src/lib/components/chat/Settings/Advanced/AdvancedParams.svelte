@@ -35,7 +35,8 @@
 		use_mlock: null,
 		num_thread: null,
 		num_gpu: null,
-		template: null
+		template: null,
+		historyMessage: null
 	};
 
 	let customFieldName = '';
@@ -292,6 +293,51 @@
 						type="text"
 						placeholder={$i18n.t('Enter reasoning effort')}
 						bind:value={params.reasoning_effort}
+						autocomplete="off"
+					/>
+				</div>
+			</div>
+		{/if}
+	</div>
+
+	<div class=" py-0.5 w-full justify-between">
+		<Tooltip
+			content={$i18n.t(
+				'Boosting or penalizing specific tokens for constrained responses. Bias values will be clamped between -100 and 100 (inclusive). (Default: none)'
+			)}
+			placement="top-start"
+			className="inline-tooltip"
+		>
+			<div class="flex w-full justify-between">
+				<div class=" self-center text-xs font-medium">
+					{$i18n.t('History Messages')}
+				</div>
+				<button
+					class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden"
+					type="button"
+					on:click={() => {
+						params.historyMessage = (params?.historyMessage ?? null) === null ? '5' : null;
+					}}
+				>
+					{#if (params?.historyMessage ?? null) === null}
+						<span class="ml-2 self-center"> {$i18n.t('Default')} </span>
+					{:else}
+						<span class="ml-2 self-center"> {$i18n.t('Custom')} </span>
+					{/if}
+				</button>
+			</div>
+		</Tooltip>
+
+		{#if (params?.historyMessage ?? null) !== null}
+			<div class="flex mt-0.5 space-x-2">
+				<div class=" flex-1">
+					<input
+						class="w-full rounded-lg pl-2 py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+						type="text"
+						placeholder={$i18n.t(
+							'Enter comma-separated "token:bias_value" pairs (example: 5432:100, 413:-100)'
+						)}
+						bind:value={params.historyMessage}
 						autocomplete="off"
 					/>
 				</div>

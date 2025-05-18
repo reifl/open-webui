@@ -1270,7 +1270,6 @@
 				...message,
 				content: removeAllDetails(message.content)
 			}));
-		console.log('messages', messages);
 		const _selectedModels = selectedModels.map((modelId) =>
 			$models.map((m) => m.id).includes(modelId) ? modelId : ''
 		);
@@ -1570,7 +1569,7 @@
 						}`
 					}
 				: undefined,
-			...createMessagesList(_history, responseMessageId).map((message) => ({
+			...createMessagesList(_history, responseMessageId).slice(-1 * params.historyMessage).map((message) => ({
 				...message,
 				content: processDetails(removeAllDetails(message.content))
 			}))
