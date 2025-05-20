@@ -36,7 +36,8 @@
 		num_thread: null,
 		num_gpu: null,
 		template: null,
-		historyMessage: null
+		historyMessage: null,
+		toolsNeedConfirmation: null
 	};
 
 	let customFieldName = '';
@@ -112,6 +113,52 @@
 			</div>
 		</Tooltip>
 	</div>
+
+	<div class=" py-0.5 w-full justify-between">
+		<Tooltip
+			content={$i18n.t(
+				'Regular Expression which tools need confirmation to be executed'
+			)}
+			placement="top-start"
+			className="inline-tooltip"
+		>
+			<div class="flex w-full justify-between">
+				<div class=" self-center text-xs font-medium">
+					{$i18n.t('Tools need confirmation')}
+				</div>
+				<button
+					class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden"
+					type="button"
+					on:click={() => {
+						params.toolsNeedConfirmation = (params?.toolsNeedConfirmation ?? null) === null ? '.*' : null;
+					}}
+				>
+					{#if (params?.toolsNeedConfirmation ?? null) === null}
+						<span class="ml-2 self-center"> {$i18n.t('Default')} </span>
+					{:else}
+						<span class="ml-2 self-center"> {$i18n.t('Custom')} </span>
+					{/if}
+				</button>
+			</div>
+		</Tooltip>
+
+		{#if (params?.toolsNeedConfirmation ?? null) !== null}
+			<div class="flex mt-0.5 space-x-2">
+				<div class=" flex-1">
+					<input
+						class="w-full rounded-lg pl-2 py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+						type="text"
+						placeholder={$i18n.t(
+							'Regular Expression which tools need confirmation to be executed (Default "")'
+						)}
+						bind:value={params.toolsNeedConfirmation}
+						autocomplete="off"
+					/>
+				</div>
+			</div>
+		{/if}
+	</div>
+
 
 	<div class=" py-0.5 w-full justify-between">
 		<Tooltip

@@ -1599,7 +1599,7 @@
 				: undefined,
 			...createMessagesList(_history, responseMessageId).slice(-1 * params.historyMessage).map((message) => ({
 				...message,
-				content: processDetails(removeAllDetails(message.content))
+				content: processDetails(removeDetails(message.content, ["tool_calls"]))
 			}))
 		].filter((message) => message);
 

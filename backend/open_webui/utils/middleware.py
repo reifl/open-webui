@@ -5,6 +5,7 @@ import os
 import base64
 
 import asyncio
+import traceback
 from aiocache import cached
 from typing import Any, Optional
 import random
@@ -617,6 +618,8 @@ async def chat_completion_files_handler(
 
 def apply_params_to_form_data(form_data, model):
     params = form_data.pop("params", {})
+    if "toolsNeedConfirmation" in params:
+        form_data["toolsNeedConfirmation"] = params["toolsNeedConfirmation"]
     if model.get("ollama"):
         form_data["options"] = params
 
@@ -1917,6 +1920,7 @@ async def process_chat_response(
 
                     results = []
                     for tool_call in response_tool_calls:
+                        
                         tool_call_id = tool_call.get("id", "")
                         tool_name = tool_call.get("function", {}).get("name", "")
 
@@ -1956,31 +1960,67 @@ async def process_chat_response(
                                     for k, v in tool_function_params.items()
                                     if k in allowed_params
                                 }
-
+                                result = False
+                                if "toolsNeedConfirmation" in form_data:
+                                    #toolObjForCheck = json.loads(tool_call)
+                                    
+                                    regEx = re.compile(form_data["toolsNeedConfirmation"])
+                                    match = regEx.match(tool_call.get("function", {}).get("name", ""))
+                                    if match != None:
+                                        confirmationMessage = f"Should we execute the tool <b>{tool_call.get("function", {}).get("name", "")}</b>?<br>Parameters:<br><table style='width:100%; border: solid'><thead><tr><th style='border: solid;  padding-top: 5px; padding-bottom: 5px'>Parameter</th><th style='border: solid;  padding-top: 5px; padding-bottom: 5px' >Value</th></tr></thead><tbody>"
+                                        for key, value in tool_function_params.items():
+                                            confirmationMessage += f"<tr><td style='border: solid; padding-top: 5px; padding-bottom: 5px; padding-left: 5px'>{key}</td><td style='text-align: right; border: solid;  padding-top: 5px; padding-bottom: 5px; padding-right: 5px'>{value}</td></tr>"
+                                        confirmationMessage += "</tbody></table>"
+                                        result = await event_caller(
+                                            {
+                                                "type": "confirmation",
+                                                "data": {
+                                                    "title": "Are you sure?",
+                                                    "message": confirmationMessage
+                                                }
+                                            }
+                                        )
+                                        
+                                        if result:
+                                            await event_emitter({
+                                                "type": "notification",
+                                                "data": {"type": "success", "content": "User confirmed operation."}
+                                            })
+                                    else:
+                                        result = True
+                                else:
+                                    result = True
+                                log.debug(f"Result: {result}")
                                 if tool.get("direct", False):
-                                    tool_result = await event_caller(
-                                        {
-                                            "type": "execute:tool",
-                                            "data": {
-                                                "id": str(uuid4()),
-                                                "name": tool_name,
-                                                "params": tool_function_params,
-                                                "server": tool.get("server", {}),
-                                                "session_id": metadata.get(
-                                                    "session_id", None
-                                                ),
-                                            },
-                                        }
-                                    )
+                                    if result:
+                                        tool_result = await event_caller(
+                                            {
+                                                "type": "execute:tool",
+                                                "data": {
+                                                    "id": str(uuid4()),
+                                                    "name": tool_name,
+                                                    "params": tool_function_params,
+                                                    "server": tool.get("server", {}),
+                                                    "session_id": metadata.get(
+                                                        "session_id", None
+                                                    ),
+                                                },
+                                            }
+                                        )
+                                    else:
+                                        tool_result = "User cancelled operation. Inform the tool call was cancelled"
 
                                 else:
                                     tool_function = tool["callable"]
-                                    tool_result = await tool_function(
-                                        **tool_function_params
-                                    )
+                                    if result:
+                                        tool_result = await tool_function(
+                                            **tool_function_params
+                                        )
+                                    else:
+                                        tool_result = "User cancelled operation. Inform the tool call was cancelled"
 
                             except Exception as e:
-                                tool_result = str(e)
+                                tool_result = str(e) + " " + traceback.format_exc()
 
                         tool_result_files = []
                         if isinstance(tool_result, list):
