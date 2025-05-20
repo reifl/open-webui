@@ -1967,7 +1967,7 @@ async def process_chat_response(
                                     regEx = re.compile(form_data["toolsNeedConfirmation"])
                                     match = regEx.match(tool_call.get("function", {}).get("name", ""))
                                     if match != None:
-                                        confirmationMessage = f"Should we execute the tool <b>{tool_call.get("function", {}).get("name", "")}</b>?<br>Parameters:<br><table style='width:100%; border: solid'><thead><tr><th style='border: solid;  padding-top: 5px; padding-bottom: 5px'>Parameter</th><th style='border: solid;  padding-top: 5px; padding-bottom: 5px' >Value</th></tr></thead><tbody>"
+                                        confirmationMessage = f"Should we execute the tool <b>{tool_name}</b>?<br>Parameters:<br><table style='width:100%; border: solid'><thead><tr><th style='border: solid;  padding-top: 5px; padding-bottom: 5px'>Parameter</th><th style='border: solid;  padding-top: 5px; padding-bottom: 5px' >Value</th></tr></thead><tbody>"
                                         for key, value in tool_function_params.items():
                                             confirmationMessage += f"<tr><td style='border: solid; padding-top: 5px; padding-bottom: 5px; padding-left: 5px'>{key}</td><td style='text-align: right; border: solid;  padding-top: 5px; padding-bottom: 5px; padding-right: 5px'>{value}</td></tr>"
                                         confirmationMessage += "</tbody></table>"
