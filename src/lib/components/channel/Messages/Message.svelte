@@ -183,6 +183,7 @@
 				{/if}
 
 				{#if (message?.data?.files ?? []).length > 0}
+					
 					<div class="my-2.5 w-full flex overflow-x-auto gap-2 flex-wrap">
 						{#each message?.data?.files as file}
 							<div>

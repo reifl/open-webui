@@ -1961,7 +1961,7 @@ async def process_chat_response(
                                     if k in allowed_params
                                 }
                                 result = False
-                                if "toolsNeedConfirmation" in form_data:
+                                if "toolsNeedConfirmation" in form_data and form_data["toolsNeedConfirmation"] != None and form_data["toolsNeedConfirmation"] != "":
                                     #toolObjForCheck = json.loads(tool_call)
                                     
                                     regEx = re.compile(form_data["toolsNeedConfirmation"])

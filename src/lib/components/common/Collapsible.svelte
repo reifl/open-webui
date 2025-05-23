@@ -245,6 +245,16 @@
 					{/each}
 				{/if}
 			{/if}
+			{#if attributes?.done === 'true'}
+				{#if typeof files === 'object'}
+					{#each files ?? [] as file, idx}
+						{#if file.startsWith('data:audio/')}
+							<audio class="w-full" controls src={file}>
+							</audio>
+						{/if}
+					{/each}
+				{/if}
+			{/if}
 		{/if}
 	{:else if !grow}
 		{#if open && !hide}
