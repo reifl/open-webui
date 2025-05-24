@@ -117,52 +117,6 @@
 	<div class=" py-0.5 w-full justify-between">
 		<Tooltip
 			content={$i18n.t(
-				'Regular Expression which tools need confirmation to be executed'
-			)}
-			placement="top-start"
-			className="inline-tooltip"
-		>
-			<div class="flex w-full justify-between">
-				<div class=" self-center text-xs font-medium">
-					{$i18n.t('Tools need confirmation')}
-				</div>
-				<button
-					class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden"
-					type="button"
-					on:click={() => {
-						params.toolsNeedConfirmation = (params?.toolsNeedConfirmation ?? null) === null ? '.*' : null;
-					}}
-				>
-					{#if (params?.toolsNeedConfirmation ?? null) === null}
-						<span class="ml-2 self-center"> {$i18n.t('Default')} </span>
-					{:else}
-						<span class="ml-2 self-center"> {$i18n.t('Custom')} </span>
-					{/if}
-				</button>
-			</div>
-		</Tooltip>
-
-		{#if (params?.toolsNeedConfirmation ?? null) !== null}
-			<div class="flex mt-0.5 space-x-2">
-				<div class=" flex-1">
-					<input
-						class="w-full rounded-lg pl-2 py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-						type="text"
-						placeholder={$i18n.t(
-							'Regular Expression which tools need confirmation to be executed (Default "")'
-						)}
-						bind:value={params.toolsNeedConfirmation}
-						autocomplete="off"
-					/>
-				</div>
-			</div>
-		{/if}
-	</div>
-
-
-	<div class=" py-0.5 w-full justify-between">
-		<Tooltip
-			content={$i18n.t(
 				'Sets the random number seed to use for generation. Setting this to a specific number will make the model generate the same text for the same prompt.'
 			)}
 			placement="top-start"
@@ -340,51 +294,6 @@
 						type="text"
 						placeholder={$i18n.t('Enter reasoning effort')}
 						bind:value={params.reasoning_effort}
-						autocomplete="off"
-					/>
-				</div>
-			</div>
-		{/if}
-	</div>
-
-	<div class=" py-0.5 w-full justify-between">
-		<Tooltip
-			content={$i18n.t(
-				'Boosting or penalizing specific tokens for constrained responses. Bias values will be clamped between -100 and 100 (inclusive). (Default: none)'
-			)}
-			placement="top-start"
-			className="inline-tooltip"
-		>
-			<div class="flex w-full justify-between">
-				<div class=" self-center text-xs font-medium">
-					{$i18n.t('History Messages')}
-				</div>
-				<button
-					class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden"
-					type="button"
-					on:click={() => {
-						params.historyMessage = (params?.historyMessage ?? null) === null ? '5' : null;
-					}}
-				>
-					{#if (params?.historyMessage ?? null) === null}
-						<span class="ml-2 self-center"> {$i18n.t('Default')} </span>
-					{:else}
-						<span class="ml-2 self-center"> {$i18n.t('Custom')} </span>
-					{/if}
-				</button>
-			</div>
-		</Tooltip>
-
-		{#if (params?.historyMessage ?? null) !== null}
-			<div class="flex mt-0.5 space-x-2">
-				<div class=" flex-1">
-					<input
-						class="w-full rounded-lg pl-2 py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-						type="text"
-						placeholder={$i18n.t(
-							'Enter comma-separated "token:bias_value" pairs (example: 5432:100, 413:-100)'
-						)}
-						bind:value={params.historyMessage}
 						autocomplete="off"
 					/>
 				</div>
@@ -1264,6 +1173,99 @@
 		{/if}
 	</div>
 
+	<div class=" py-0.5 w-full justify-between">
+		<Tooltip
+			content={$i18n.t(
+				'Limits the amount of messages sent to the backend for chat generation'
+			)}
+			placement="top-start"
+			className="inline-tooltip"
+		>
+			<div class="flex w-full justify-between">
+				<div class=" self-center text-xs font-medium">
+					{$i18n.t('History Messages')}
+				</div>
+				<button
+					class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden"
+					type="button"
+					on:click={() => {
+						params.historyMessage = (params?.historyMessage ?? null) === null ? '5' : null;
+					}}
+				>
+					{#if (params?.historyMessage ?? null) === null}
+						<span class="ml-2 self-center"> {$i18n.t('Default')} </span>
+					{:else}
+						<span class="ml-2 self-center"> {$i18n.t('Custom')} </span>
+					{/if}
+				</button>
+			</div>
+		</Tooltip>
+
+		{#if (params?.historyMessage ?? null) !== null}
+			<div class="flex mt-0.5 space-x-2">
+				<div class=" flex-1">
+					<input
+						class="w-full rounded-lg pl-2 py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+						type="text"
+						placeholder={$i18n.t(
+							'Number of messages transmitted'
+						)}
+						bind:value={params.historyMessage}
+						autocomplete="off"
+					/>
+				</div>
+			</div>
+		{/if}
+	</div>
+
+	<div class=" py-0.5 w-full justify-between">
+		<Tooltip
+			content={$i18n.t(
+				'Regular Expression which tools need confirmation to be executed'
+			)}
+			placement="top-start"
+			className="inline-tooltip"
+		>
+			<div class="flex w-full justify-between">
+				<div class=" self-center text-xs font-medium">
+					{$i18n.t('Tools need confirmation')}
+				</div>
+				<button
+					class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden"
+					type="button"
+					on:click={() => {
+						params.toolsNeedConfirmation = (params?.toolsNeedConfirmation ?? null) === null ? '.*' : null;
+					}}
+				>
+					{#if (params?.toolsNeedConfirmation ?? null) === null}
+						<span class="ml-2 self-center"> {$i18n.t('Default')} </span>
+					{:else}
+						<span class="ml-2 self-center"> {$i18n.t('Custom')} </span>
+					{/if}
+				</button>
+			</div>
+		</Tooltip>
+
+		{#if (params?.toolsNeedConfirmation ?? null) !== null}
+			<div class="flex mt-0.5 space-x-2">
+				<div class=" flex-1">
+					<input
+						class="w-full rounded-lg pl-2 py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+						type="text"
+						placeholder={$i18n.t(
+							'Regular Expression which tools need confirmation to be executed (Default "")'
+						)}
+						bind:value={params.toolsNeedConfirmation}
+						autocomplete="off"
+					/>
+				</div>
+			</div>
+		{/if}
+	</div>
+
+
+
+
 	{#if admin}
 		<div class=" py-0.5 w-full justify-between">
 			<Tooltip
@@ -1458,6 +1460,7 @@
 				</div>
 			{/if}
 		</div>
+		
 
 		<!-- <div class=" py-0.5 w-full justify-between">
 			<div class="flex w-full justify-between">
