@@ -14,6 +14,10 @@ import html
 import inspect
 import re
 import ast
+from urllib.parse import urlparse
+
+from open_webui.routers.files import upload_file, UploadFile
+import io
 
 from uuid import uuid4
 from concurrent.futures import ThreadPoolExecutor
@@ -222,6 +226,8 @@ async def chat_completion_tools_handler(
                 except Exception as e:
                     tool_result = str(e)
 
+                log.warning(f"Tool_result type {type(tool_result)}")
+
                 tool_result_files = []
                 if isinstance(tool_result, list):
                     for item in tool_result:
@@ -290,6 +296,20 @@ async def chat_completion_tools_handler(
 
     return body, {"sources": sources}
 
+
+def parse_base64_html_data(base64_html_string):
+    """Parses a Base64 HTML data string and returns the MIME type and content."""
+    try:
+        if "," in base64_html_string:
+            header, encoded = base64_html_string.split(",", 1)
+            mime_type = header.split(";")[0].split(":")[1]
+            img_data = base64.b64decode(encoded)
+
+            return mime_type, img_data
+        return "", None
+    except Exception as e:
+        print(f"An error occurred while parsing: {e}")
+        return None
 
 async def chat_web_search_handler(
     request: Request, form_data: dict, extra_params: dict, user
@@ -2027,7 +2047,21 @@ async def process_chat_response(
                             for item in tool_result:
                                 # check if string
                                 if isinstance(item, str) and item.startswith("data:"):
-                                    tool_result_files.append(item)
+                                    mimetype, data = parse_base64_html_data(item)
+                                    log.warning(f"Mimetype: {mimetype}")
+                                    import mimetypes
+                                    file_format = mimetypes.guess_extension(mimetype)
+                                    file = UploadFile(
+                                        file=io.BytesIO(data),
+                                        headers={
+                                            "content-type": mimetype
+                                        },
+                                        filename = f"generated-file{file_format}"
+                                    )
+                                    file_item = upload_file(request, file, user, file_metadata=mimetype)
+                                    file_url = request.app.url_path_for("get_file_content_by_id", id=file_item.id)
+                                    log.warning(f"file_url: {file_url}")
+                                    tool_result_files.append(file_url)
                                     tool_result.remove(item)
 
                         if isinstance(tool_result, dict) or isinstance(

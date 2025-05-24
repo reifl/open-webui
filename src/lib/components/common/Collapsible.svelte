@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { decode } from 'html-entities';
 	import { v4 as uuidv4 } from 'uuid';
+	import { WEBUI_BASE_URL } from '$lib/constants';
+	import { dev } from '$app/environment';
 
 	import { getContext } from 'svelte';
 	const i18n = getContext('i18n');
@@ -80,6 +82,99 @@
 			// Not valid JSON, return as-is
 			return str;
 		}
+	}
+
+	// Enhanced file handling functions
+	function isDataUrl(url) {
+		return url.startsWith('data:');
+	}
+
+	function isAbsoluteUrl(url) {
+		return url.startsWith('http://') || url.startsWith('https://');
+	}
+
+	function getDataUrlMimeType(dataUrl) {
+		const match = dataUrl.match(/^data:([^;]+)/);
+		return match ? match[1] : '';
+	}
+
+	async function getContentTypeFromServer(url) {
+		try {
+			const fullUrl = getFullUrl(url);
+			// Use GET method but abort early to get headers without downloading the body
+			const controller = new AbortController();
+			const response = await fetch(fullUrl, { 
+				method: 'GET',
+				// Only include credentials in development (cross-origin), use default in production (same-origin)
+				...(dev && { credentials: 'include' }),
+				signal: controller.signal 
+			});
+			
+			// Abort the request immediately after getting headers to prevent downloading the body
+			controller.abort();
+			
+			return response.headers.get('content-type') || '';
+		} catch (error) {
+			// AbortError is expected, we only care about other errors
+			if (error.name !== 'AbortError') {
+				console.error('Failed to fetch content-type for:', url, error);
+			}
+			return '';
+		}
+	}
+
+	function getFullUrl(url) {
+		if (isDataUrl(url) || isAbsoluteUrl(url)) {
+			return url;
+		}
+		// Handle relative URLs by prepending WEBUI_BASE_URL
+		return `${WEBUI_BASE_URL}${url.startsWith('/') ? url : '/' + url}`;
+	}
+
+	async function determineFileType(file) {
+		// Priority 1: Data URL with explicit MIME type
+		if (isDataUrl(file)) {
+			return getDataUrlMimeType(file);
+		}
+		
+		// Priority 2: Get content-type from server for URLs
+		if (file && typeof file === 'string') {
+			return await getContentTypeFromServer(file);
+		}
+		
+		// Fallback: return empty string for unknown types
+		return '';
+	}
+
+	// Reactive store to track file types
+	let fileTypes = {};
+	let loadingFileTypes = {};
+
+	async function updateFileTypes(files) {
+		if (typeof files === 'object' && files) {
+			const newFileTypes = {};
+			const newLoadingStates = {};
+			
+			for (let i = 0; i < files.length; i++) {
+				const file = files[i];
+				// Show loading for URL requests (not data URLs)
+				if (!isDataUrl(file)) {
+					newLoadingStates[i] = true;
+					loadingFileTypes = {...loadingFileTypes, ...newLoadingStates};
+				}
+				newFileTypes[i] = await determineFileType(file);
+				newLoadingStates[i] = false;
+			}
+			
+			fileTypes = newFileTypes;
+			loadingFileTypes = newLoadingStates;
+		}
+	}
+
+	// Reactive statement to update file types when files change
+	$: if (attributes?.done === 'true' && parseJSONString(decode(attributes?.files ?? ''))) {
+		const files = parseJSONString(decode(attributes?.files ?? ''));
+		updateFileTypes(files);
 	}
 </script>
 
@@ -235,22 +330,77 @@
 			{#if attributes?.done === 'true'}
 				{#if typeof files === 'object'}
 					{#each files ?? [] as file, idx}
-						{#if file.startsWith('data:image/')}
+						{@const contentType = fileTypes[idx] || ''}
+						{@const isLoading = loadingFileTypes[idx] || false}
+						{@const displayUrl = isDataUrl(file) ? file : getFullUrl(file)}
+						
+						{#if isLoading}
+							<div class="flex items-center gap-2 p-2 text-gray-500">
+								<Spinner className="size-4" />
+								<span>Loading file...</span>
+							</div>
+						{:else if contentType.startsWith('image/')}
 							<Image
 								id={`${collapsibleId}-tool-calls-${attributes?.id}-result-${idx}`}
-								src={file}
+								src={displayUrl}
 								alt="Image"
 							/>
-						{/if}
-					{/each}
-				{/if}
-			{/if}
-			{#if attributes?.done === 'true'}
-				{#if typeof files === 'object'}
-					{#each files ?? [] as file, idx}
-						{#if file.startsWith('data:audio/')}
-							<audio class="w-full" controls src={file}>
+						{:else if contentType.startsWith('audio/')}
+							<audio class="w-full" controls src={displayUrl}>
+								<track kind="captions" />
 							</audio>
+						{:else if contentType.startsWith('video/')}
+							<video class="w-full" controls src={displayUrl}>
+								<track kind="captions" />
+							</video>
+						{:else if contentType.includes('pdf')}
+							<iframe 
+								src={displayUrl} 
+								class="w-full h-96 border rounded" 
+								title="PDF Document">
+							</iframe>
+						{:else if contentType.startsWith('text/') || contentType.includes('json') || contentType.includes('xml')}
+							{#if isDataUrl(file)}
+								<div class="p-4 bg-gray-50 dark:bg-gray-800 rounded border">
+									<div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Text Content ({contentType}):</div>
+									<pre class="text-sm overflow-auto max-h-64">{atob(file.split(',')[1] || '')}</pre>
+								</div>
+							{:else}
+								<a 
+									href={displayUrl} 
+									target="_blank" 
+									rel="noopener noreferrer"
+									class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 underline p-2"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+									</svg>
+									View Text File ({contentType})
+								</a>
+							{/if}
+						{:else if file}
+							{#if isDataUrl(file)}
+								<div class="p-4 bg-gray-50 dark:bg-gray-800 rounded border">
+									<div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+										File Content ({contentType || 'Unknown type'}):
+									</div>
+									<div class="text-xs text-gray-500 font-mono break-all">
+										{file.substring(0, 100)}...
+									</div>
+								</div>
+							{:else}
+								<a 
+									href={displayUrl} 
+									target="_blank" 
+									rel="noopener noreferrer"
+									class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 underline p-2"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+									</svg>
+									Download File ({contentType || 'Unknown type'})
+								</a>
+							{/if}
 						{/if}
 					{/each}
 				{/if}
