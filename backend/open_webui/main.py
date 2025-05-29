@@ -40,6 +40,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from starlette_compress import CompressMiddleware
+
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -210,6 +212,15 @@ from open_webui.config import (
     CHUNK_OVERLAP,
     CHUNK_SIZE,
     CONTENT_EXTRACTION_ENGINE,
+    DATALAB_MARKER_API_KEY,
+    DATALAB_MARKER_LANGS,
+    DATALAB_MARKER_SKIP_CACHE,
+    DATALAB_MARKER_FORCE_OCR,
+    DATALAB_MARKER_PAGINATE,
+    DATALAB_MARKER_STRIP_EXISTING_OCR,
+    DATALAB_MARKER_DISABLE_IMAGE_EXTRACTION,
+    DATALAB_MARKER_OUTPUT_FORMAT,
+    DATALAB_MARKER_USE_LLM,
     EXTERNAL_DOCUMENT_LOADER_URL,
     EXTERNAL_DOCUMENT_LOADER_API_KEY,
     TIKA_SERVER_URL,
@@ -635,8 +646,12 @@ app.state.WEBUI_AUTH_SIGNOUT_REDIRECT_URL = WEBUI_AUTH_SIGNOUT_REDIRECT_URL
 app.state.EXTERNAL_PWA_MANIFEST_URL = EXTERNAL_PWA_MANIFEST_URL
 
 app.state.USER_COUNT = None
+
 app.state.TOOLS = {}
+app.state.TOOL_CONTENTS = {}
+
 app.state.FUNCTIONS = {}
+app.state.FUNCTION_CONTENTS = {}
 
 ########################################
 #
@@ -660,6 +675,17 @@ app.state.config.ENABLE_RAG_HYBRID_SEARCH = ENABLE_RAG_HYBRID_SEARCH
 app.state.config.ENABLE_WEB_LOADER_SSL_VERIFICATION = ENABLE_WEB_LOADER_SSL_VERIFICATION
 
 app.state.config.CONTENT_EXTRACTION_ENGINE = CONTENT_EXTRACTION_ENGINE
+app.state.config.DATALAB_MARKER_API_KEY = DATALAB_MARKER_API_KEY
+app.state.config.DATALAB_MARKER_LANGS = DATALAB_MARKER_LANGS
+app.state.config.DATALAB_MARKER_SKIP_CACHE = DATALAB_MARKER_SKIP_CACHE
+app.state.config.DATALAB_MARKER_FORCE_OCR = DATALAB_MARKER_FORCE_OCR
+app.state.config.DATALAB_MARKER_PAGINATE = DATALAB_MARKER_PAGINATE
+app.state.config.DATALAB_MARKER_STRIP_EXISTING_OCR = DATALAB_MARKER_STRIP_EXISTING_OCR
+app.state.config.DATALAB_MARKER_DISABLE_IMAGE_EXTRACTION = (
+    DATALAB_MARKER_DISABLE_IMAGE_EXTRACTION
+)
+app.state.config.DATALAB_MARKER_USE_LLM = DATALAB_MARKER_USE_LLM
+app.state.config.DATALAB_MARKER_OUTPUT_FORMAT = DATALAB_MARKER_OUTPUT_FORMAT
 app.state.config.EXTERNAL_DOCUMENT_LOADER_URL = EXTERNAL_DOCUMENT_LOADER_URL
 app.state.config.EXTERNAL_DOCUMENT_LOADER_API_KEY = EXTERNAL_DOCUMENT_LOADER_API_KEY
 app.state.config.TIKA_SERVER_URL = TIKA_SERVER_URL
@@ -963,6 +989,7 @@ class RedirectMiddleware(BaseHTTPMiddleware):
 
 
 # Add the middleware to the app
+app.add_middleware(CompressMiddleware)
 app.add_middleware(RedirectMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
