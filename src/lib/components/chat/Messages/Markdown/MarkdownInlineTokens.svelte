@@ -95,6 +95,9 @@
 				on:click={(e) => handleLinkClick(e, token.href)}>{token.text}</a
 			>
 		{/if}
+	{:else if token.type === 'audio'}
+		<!-- svelte-ignore a11y-media-has-caption -->
+		<audio class="w-full my-1" src="{WEBUI_BASE_URL}{token.url}" controls></audio>
 	{:else if token.type === 'image'}
 		<Image src={token.href} alt={token.text} />
 	{:else if token.type === 'strong'}

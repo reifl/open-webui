@@ -1146,9 +1146,11 @@ async def process_tool_result(
                                 pass
                         tool_response.append(text)
                     elif item.get('type') in ['image', 'audio']:
+                        item_type = item.get('type')
+                        default_mime = 'audio/wav' if item_type == 'audio' else 'image/png'
                         file_url = await get_file_url_from_base64(
                             request,
-                            f'data:{item.get("mimeType")};base64,{item.get("data", item.get("blob", ""))}',
+                            f'data:{item.get("mimeType") or default_mime};base64,{item.get("data", item.get("blob", ""))}',
                             {
                                 'chat_id': metadata.get('chat_id', None),
                                 'message_id': metadata.get('message_id', None),
@@ -1164,6 +1166,13 @@ async def process_tool_result(
                                 'url': file_url,
                             }
                         )
+                        if file_url:
+                            media_label = 'Audio' if item.get('type') == 'audio' else 'Image'
+                            media_ref = f'[{media_label}: {file_url}]'
+                            if tool_response and isinstance(tool_response[-1], str):
+                                tool_response[-1] += f' {media_ref}'
+                            else:
+                                tool_response.append(media_ref)
                     elif item.get('type') == 'resource':
                         resource = item.get('resource', {})
                         text = resource.get('text', '')

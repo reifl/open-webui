@@ -68,14 +68,13 @@ export const replaceTokens = (content, char, user) => {
 		}
 	];
 
-	// Apply replacements
+	// Apply replacements (outside code blocks)
 	content = replaceOutsideCode(content, (segment) => {
 		tokens.forEach(({ regex, replacement }) => {
 			if (replacement !== undefined && replacement !== null) {
 				segment = segment.replace(regex, replacement);
 			}
 		});
-
 		return segment;
 	});
 

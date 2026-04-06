@@ -87,8 +87,34 @@ function detailsExtension() {
 	};
 }
 
+// Inline audio extension: matches [Audio: /api/v1/files/<uuid>/content]
+// emitted by MCP tool results and creates an 'audio' token for rendering.
+function audioExtension() {
+	return {
+		name: 'audio',
+		level: 'inline',
+		start(src: string) {
+			const idx = src.indexOf('[Audio:');
+			return idx >= 0 ? idx : undefined;
+		},
+		tokenizer(src: string) {
+			const match = /^\[Audio:\s*(\/api\/v1\/files\/[a-f0-9-]+\/content)\]/.exec(src);
+			if (match) {
+				return {
+					type: 'audio',
+					raw: match[0],
+					url: match[1]
+				};
+			}
+		},
+		renderer(token: any) {
+			return `<audio src="${token.url}" controls></audio>`;
+		}
+	};
+}
+
 export default function (options = {}) {
 	return {
-		extensions: [detailsExtension(options)]
+		extensions: [detailsExtension(options), audioExtension()]
 	};
 }

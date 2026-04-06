@@ -30,6 +30,7 @@ from open_webui.env import AIOHTTP_CLIENT_SESSION_SSL, ENABLE_IMAGE_CONTENT_TYPE
 from open_webui.utils.session_pool import get_session
 
 BASE64_IMAGE_URL_PREFIX = re.compile(r'data:image/\w+;base64,', re.IGNORECASE)
+BASE64_AUDIO_URL_PREFIX = re.compile(r'data:audio/[\w.+-]+;base64,', re.IGNORECASE)
 MARKDOWN_IMAGE_URL_PATTERN = re.compile(r'!\[(.*?)\]\((.+?)\)', re.IGNORECASE)
 
 # Extension-based MIME fallback, only used when ENABLE_IMAGE_CONTENT_TYPE_EXTENSION_FALLBACK is True.
@@ -164,7 +165,7 @@ async def upload_audio(request, audio_data, content_type, metadata, user):
 
 
 async def get_audio_url_from_base64(request, base64_audio_string, metadata, user):
-    if 'data:audio/wav;base64' in base64_audio_string:
+    if BASE64_AUDIO_URL_PREFIX.match(base64_audio_string):
         audio_url = ''
         # Extract base64 audio data from the line
         audio_data, content_type = load_b64_audio_data(base64_audio_string)
@@ -183,7 +184,7 @@ async def get_audio_url_from_base64(request, base64_audio_string, metadata, user
 async def get_file_url_from_base64(request, base64_file_string, metadata, user):
     if BASE64_IMAGE_URL_PREFIX.match(base64_file_string):
         return await get_image_url_from_base64(request, base64_file_string, metadata, user)
-    elif 'data:audio/wav;base64' in base64_file_string:
+    elif BASE64_AUDIO_URL_PREFIX.match(base64_file_string):
         return await get_audio_url_from_base64(request, base64_file_string, metadata, user)
     return None
 
