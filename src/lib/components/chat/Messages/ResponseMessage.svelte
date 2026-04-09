@@ -665,7 +665,7 @@
 							<StatusHistory statusHistory={message?.statusHistory} />
 						{/if}
 
-						{#if message?.files && message.files?.filter((f) => f.type === 'image' || f.type === 'audio').length > 0}
+						{#if message?.files && message.files?.filter((f) => f.type === 'image' || f.type === 'audio' || f.type === 'video').length > 0}
 							<div
 								class="my-1 w-full flex overflow-x-auto gap-2 flex-wrap"
 								dir={$settings?.chatDirection ?? 'auto'}
@@ -677,6 +677,9 @@
 										{:else if file.type === 'audio' || (file?.content_type ?? '').startsWith('audio/')}
 											<!-- svelte-ignore a11y-media-has-caption -->
 											<audio class="w-full my-1" src={file.url} controls></audio>
+										{:else if file.type === 'video' || (file?.content_type ?? '').startsWith('video/')}
+											<!-- svelte-ignore a11y-media-has-caption -->
+											<video class="w-full my-1" src={file.url} controls></video>
 										{:else}
 											<FileItem
 												item={file}

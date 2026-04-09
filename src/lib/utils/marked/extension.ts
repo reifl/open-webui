@@ -113,8 +113,34 @@ function audioExtension() {
 	};
 }
 
+// Inline video extension: matches [Video: /api/v1/files/<uuid>/content]
+// emitted by MCP EmbeddedResourceBlock tool results for video/mp4 etc.
+function videoExtension() {
+	return {
+		name: 'video',
+		level: 'inline',
+		start(src: string) {
+			const idx = src.indexOf('[Video:');
+			return idx >= 0 ? idx : undefined;
+		},
+		tokenizer(src: string) {
+			const match = /^\[Video:\s*(\/api\/v1\/files\/[a-f0-9-]+\/content)\]/.exec(src);
+			if (match) {
+				return {
+					type: 'video',
+					raw: match[0],
+					url: match[1]
+				};
+			}
+		},
+		renderer(token: any) {
+			return `<video src="${token.url}" controls></video>`;
+		}
+	};
+}
+
 export default function (options = {}) {
 	return {
-		extensions: [detailsExtension(options), audioExtension()]
+		extensions: [detailsExtension(options), audioExtension(), videoExtension()]
 	};
 }

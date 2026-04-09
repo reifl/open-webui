@@ -98,6 +98,9 @@
 	{:else if token.type === 'audio'}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<audio class="w-full my-1" src="{WEBUI_BASE_URL}{token.url}" controls></audio>
+	{:else if token.type === 'video'}
+		<!-- svelte-ignore a11y-media-has-caption -->
+		<video class="w-full my-1" src="{WEBUI_BASE_URL}{token.url}" controls></video>
 	{:else if token.type === 'image'}
 		<Image src={token.href} alt={token.text} />
 	{:else if token.type === 'strong'}

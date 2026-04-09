@@ -1174,9 +1174,33 @@ async def process_tool_result(
                             else:
                                 tool_response.append(media_ref)
                     elif item.get('type') == 'resource':
+                        # EmbeddedResourceBlock from MCP — blob data inside resource field
                         resource = item.get('resource', {})
+                        mime_type = resource.get('mimeType', '')
+                        blob_data = resource.get('blob', '')
                         text = resource.get('text', '')
-                        if isinstance(text, str) and text:
+                        if blob_data and mime_type:
+                            media_kind = mime_type.split('/')[0]  # 'image', 'audio', 'video', ...
+                            file_url = get_file_url_from_base64(
+                                request,
+                                f'data:{mime_type};base64,{blob_data}',
+                                {
+                                    'chat_id': metadata.get('chat_id', None),
+                                    'message_id': metadata.get('message_id', None),
+                                    'session_id': metadata.get('session_id', None),
+                                    'result': item,
+                                },
+                                user,
+                            )
+                            tool_result_files.append({'type': media_kind, 'url': file_url})
+                            if file_url:
+                                media_label = media_kind.capitalize()
+                                media_ref = f'[{media_label}: {file_url}]'
+                                if tool_response and isinstance(tool_response[-1], str):
+                                    tool_response[-1] += f' {media_ref}'
+                                else:
+                                    tool_response.append(media_ref)
+                        elif isinstance(text, str) and text:
                             try:
                                 text = json.loads(text)
                             except json.JSONDecodeError:
