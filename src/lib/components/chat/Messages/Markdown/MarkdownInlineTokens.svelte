@@ -102,7 +102,15 @@
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<video class="w-full my-1" src="{WEBUI_BASE_URL}{token.url}" controls></video>
 	{:else if token.type === 'image'}
-		<Image src={token.href} alt={token.text} />
+		{#if token.text?.toLowerCase() === 'video'}
+			<!-- svelte-ignore a11y-media-has-caption -->
+			<video class="max-w-full my-1" src={token.href} controls></video>
+		{:else if token.text?.toLowerCase() === 'audio'}
+			<!-- svelte-ignore a11y-media-has-caption -->
+			<audio class="w-full my-1" src={token.href} controls></audio>
+		{:else}
+			<Image src={token.href} alt={token.text} />
+		{/if}
 	{:else if token.type === 'strong'}
 		<strong><svelte:self id={`${id}-strong`} tokens={token.tokens} {onSourceClick} /></strong>
 	{:else if token.type === 'em'}
