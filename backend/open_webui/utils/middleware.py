@@ -1180,7 +1180,11 @@ async def process_tool_result(
                         blob_data = resource.get('blob', '')
                         text = resource.get('text', '')
                         if blob_data and mime_type:
-                            media_kind = mime_type.split('/')[0]  # 'image', 'audio', 'video', ...
+                            # Map MIME type to media kind; treat 3D model types as 'model3d'
+                            if mime_type.startswith('model/'):
+                                media_kind = 'model3d'
+                            else:
+                                media_kind = mime_type.split('/')[0]  # 'image', 'audio', 'video'
                             file_url = get_file_url_from_base64(
                                 request,
                                 f'data:{mime_type};base64,{blob_data}',
@@ -1194,7 +1198,10 @@ async def process_tool_result(
                             )
                             tool_result_files.append({'type': media_kind, 'url': file_url})
                             if file_url:
-                                media_label = media_kind.capitalize()
+                                if media_kind == 'model3d':
+                                    media_label = '3DModel'
+                                else:
+                                    media_label = media_kind.capitalize()
                                 media_ref = f'[{media_label}: {file_url}]'
                                 if tool_response and isinstance(tool_response[-1], str):
                                     tool_response[-1] += f' {media_ref}'

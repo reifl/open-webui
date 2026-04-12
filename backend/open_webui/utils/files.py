@@ -32,6 +32,7 @@ from open_webui.utils.session_pool import get_session
 BASE64_IMAGE_URL_PREFIX = re.compile(r'data:image/\w+;base64,', re.IGNORECASE)
 BASE64_AUDIO_URL_PREFIX = re.compile(r'data:audio/[\w.+-]+;base64,', re.IGNORECASE)
 BASE64_VIDEO_URL_PREFIX = re.compile(r'data:video/[\w.+-]+;base64,', re.IGNORECASE)
+BASE64_MODEL3D_URL_PREFIX = re.compile(r'data:model/[\w.+-]+;base64,', re.IGNORECASE)
 MARKDOWN_IMAGE_URL_PATTERN = re.compile(r'!\[(.*?)\]\((.+?)\)', re.IGNORECASE)
 
 # Extension-based MIME fallback, only used when ENABLE_IMAGE_CONTENT_TYPE_EXTENSION_FALLBACK is True.
@@ -233,6 +234,53 @@ async def get_video_url_from_base64(request, base64_video_string, metadata, user
     return None
 
 
+def load_b64_model3d_data(b64_str):
+    try:
+        if ',' in b64_str:
+            header, b64_data = b64_str.split(',', 1)
+        else:
+            b64_data = b64_str
+            header = 'data:model/gltf-binary;base64'
+        model_data = base64.b64decode(b64_data)
+        content_type = header.split(';')[0].split(':')[1] if ';' in header else 'model/gltf-binary'
+        return model_data, content_type
+    except Exception as e:
+        print(f'Error decoding base64 3D model data: {e}')
+        return None, None
+
+
+async def upload_model3d(request, model_data, content_type, metadata, user):
+    ext_map = {
+        'model/gltf-binary': '.glb',
+        'model/gltf+json': '.gltf',
+        'model/obj': '.obj',
+        'model/stl': '.stl',
+    }
+    file_ext = ext_map.get(content_type.lower(), mimetypes.guess_extension(content_type) or '.glb')
+    file = UploadFile(
+        file=io.BytesIO(model_data),
+        filename=f'generated{file_ext}',
+        headers={'content-type': content_type},
+    )
+    file_item = await upload_file_handler(
+        request,
+        file=file,
+        metadata=metadata,
+        process=False,
+        user=user,
+    )
+    url = request.app.url_path_for('get_file_content_by_id', id=file_item.id)
+    return url
+
+
+async def get_model3d_url_from_base64(request, base64_model_string, metadata, user):
+    if BASE64_MODEL3D_URL_PREFIX.match(base64_model_string):
+        model_data, content_type = load_b64_model3d_data(base64_model_string)
+        if model_data is not None:
+            return await upload_model3d(request, model_data, content_type, metadata, user)
+    return None
+
+
 async def get_file_url_from_base64(request, base64_file_string, metadata, user):
     if BASE64_IMAGE_URL_PREFIX.match(base64_file_string):
         return await get_image_url_from_base64(request, base64_file_string, metadata, user)
@@ -240,6 +288,8 @@ async def get_file_url_from_base64(request, base64_file_string, metadata, user):
         return await get_audio_url_from_base64(request, base64_file_string, metadata, user)
     elif BASE64_VIDEO_URL_PREFIX.match(base64_file_string):
         return await get_video_url_from_base64(request, base64_file_string, metadata, user)
+    elif BASE64_MODEL3D_URL_PREFIX.match(base64_file_string):
+        return await get_model3d_url_from_base64(request, base64_file_string, metadata, user)
     return None
 
 

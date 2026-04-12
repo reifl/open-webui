@@ -57,6 +57,7 @@
 	import ContentRenderer from './ContentRenderer.svelte';
 	import { KokoroWorker } from '$lib/workers/KokoroWorker';
 	import FileItem from '$lib/components/common/FileItem.svelte';
+	import ModelViewer3D from './ModelViewer3D.svelte';
 	import FollowUps from './ResponseMessage/FollowUps.svelte';
 	import { fade } from 'svelte/transition';
 	import { flyAndScale } from '$lib/utils/transitions';
@@ -663,6 +664,14 @@
 					<div>
 						{#if model?.info?.meta?.capabilities?.status_updates ?? true}
 							<StatusHistory statusHistory={message?.statusHistory} />
+						{/if}
+
+						{#if message?.files && message.files?.filter((f) => f.type === 'model3d').length > 0}
+							<div class="my-1 w-full">
+								{#each message.files.filter((f) => f.type === 'model3d') as file}
+									<ModelViewer3D url={file.url} />
+								{/each}
+							</div>
 						{/if}
 
 						{#if message?.files && message.files?.filter((f) => f.type === 'image' || f.type === 'audio' || f.type === 'video').length > 0}

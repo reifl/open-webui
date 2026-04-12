@@ -25,6 +25,7 @@
 	import HtmlToken from './HTMLToken.svelte';
 	import Clipboard from '$lib/components/icons/Clipboard.svelte';
 	import ColonFenceBlock from './ColonFenceBlock.svelte';
+	import ModelViewer3D from '$lib/components/chat/Messages/ModelViewer3D.svelte';
 
 	export let id: string;
 	export let tokens: Token[];
@@ -472,6 +473,8 @@
 	{:else if token.type === 'video'}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<video class="w-full my-1" src="{WEBUI_BASE_URL}{token.url}" controls></video>
+	{:else if token.type === 'model3d'}
+		<ModelViewer3D url="{WEBUI_BASE_URL}{token.url}" />
 	{:else if token.type === 'html'}
 		<HtmlToken {id} {token} {onSourceClick} />
 	{:else if token.type === 'iframe'}

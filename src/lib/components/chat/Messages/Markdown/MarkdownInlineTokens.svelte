@@ -18,6 +18,7 @@
 	import TextToken from './MarkdownInlineTokens/TextToken.svelte';
 	import CodespanToken from './MarkdownInlineTokens/CodespanToken.svelte';
 	import MentionToken from './MarkdownInlineTokens/MentionToken.svelte';
+	import ModelViewer3D from '$lib/components/chat/Messages/ModelViewer3D.svelte';
 	import NoteLinkToken from './MarkdownInlineTokens/NoteLinkToken.svelte';
 	import SourceToken from './SourceToken.svelte';
 
@@ -101,6 +102,8 @@
 	{:else if token.type === 'video'}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<video class="w-full my-1" src="{WEBUI_BASE_URL}{token.url}" controls></video>
+	{:else if token.type === 'model3d'}
+		<ModelViewer3D url="{WEBUI_BASE_URL}{token.url}" />
 	{:else if token.type === 'image'}
 		{#if token.text?.toLowerCase() === 'video'}
 			<!-- svelte-ignore a11y-media-has-caption -->
@@ -108,6 +111,8 @@
 		{:else if token.text?.toLowerCase() === 'audio'}
 			<!-- svelte-ignore a11y-media-has-caption -->
 			<audio class="w-full my-1" src={token.href} controls></audio>
+		{:else if token.text?.toLowerCase() === '3dmodel'}
+			<ModelViewer3D url={token.href} />
 		{:else}
 			<Image src={token.href} alt={token.text} />
 		{/if}

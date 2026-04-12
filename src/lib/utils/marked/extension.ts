@@ -113,6 +113,32 @@ function audioExtension() {
 	};
 }
 
+// Inline 3D model extension: matches [3DModel: /api/v1/files/<id>/content]
+// emitted by MCP Generate3DModel tool results (GLB files via 3d:// URIs).
+function model3dExtension() {
+	return {
+		name: 'model3d',
+		level: 'inline',
+		start(src: string) {
+			const idx = src.indexOf('[3DModel:');
+			return idx >= 0 ? idx : undefined;
+		},
+		tokenizer(src: string) {
+			const match = /^\[3DModel:\s*(\/api\/v1\/files\/[^\]]+\/content)\]/.exec(src);
+			if (match) {
+				return {
+					type: 'model3d',
+					raw: match[0],
+					url: match[1]
+				};
+			}
+		},
+		renderer(token: any) {
+			return `<span data-model3d-url="${token.url}"></span>`;
+		}
+	};
+}
+
 // Inline video extension: matches [Video: /api/v1/files/<uuid>/content]
 // emitted by MCP EmbeddedResourceBlock tool results for video/mp4 etc.
 function videoExtension() {
@@ -141,6 +167,6 @@ function videoExtension() {
 
 export default function (options = {}) {
 	return {
-		extensions: [detailsExtension(options), audioExtension(), videoExtension()]
+		extensions: [detailsExtension(options), audioExtension(), videoExtension(), model3dExtension()]
 	};
 }
