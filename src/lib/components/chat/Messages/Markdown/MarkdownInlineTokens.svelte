@@ -114,7 +114,7 @@
 		{:else if token.text?.toLowerCase() === '3dmodel'}
 			<ModelViewer3D url={token.href} />
 		{:else}
-			<Image src={token.href} alt={token.text} />
+			<Image src={token.href} alt={token.text} allowExternal={true} />
 		{/if}
 	{:else if token.type === 'strong'}
 		<strong><svelte:self id={`${id}-strong`} tokens={token.tokens} {onSourceClick} /></strong>
