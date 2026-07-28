@@ -116,6 +116,7 @@ class MCPClient:
 
         result_dict = result.model_dump(mode='json')
         result_content = result_dict.get('content', {})
+
         def _trim(obj, max_len=60):
             if isinstance(obj, dict):
                 return {k: _trim(v) for k, v in obj.items()}
@@ -124,6 +125,7 @@ class MCPClient:
             if isinstance(obj, str) and len(obj) > max_len:
                 return obj[:max_len] + f'...[{len(obj)} chars]'
             return obj
+
         log.info(f'MCP call_tool [{function_name}] raw result: {_trim(result_dict)}')
 
         if result.isError:
