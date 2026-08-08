@@ -1046,7 +1046,7 @@ async def process_tool_result(
                                 media_kind = 'model3d'
                             else:
                                 media_kind = mime_type.split('/')[0]  # 'image', 'audio', 'video'
-                            file_url = get_file_url_from_base64(
+                            file_url = await get_file_url_from_base64(
                                 request,
                                 f'data:{mime_type};base64,{blob_data}',
                                 {
