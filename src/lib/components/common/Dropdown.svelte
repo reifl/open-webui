@@ -286,6 +286,11 @@
 		if (!(event.target instanceof Node)) return;
 		if (triggerEl?.contains(event.target)) return;
 		if (contentEl?.contains(event.target)) return;
+		// Nested submenus (e.g. DropdownSub) portal their content directly to
+		// document.body, so it isn't a DOM descendant of contentEl even though
+		// it's logically nested. Treat any click inside an open menu as "inside"
+		// so this dropdown doesn't close itself before the submenu item's click fires.
+		if (event.target instanceof Element && event.target.closest('[role="menu"]')) return;
 		closeDropdown(false);
 	}
 
