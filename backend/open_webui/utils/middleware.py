@@ -3022,11 +3022,45 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                         for tool_spec in tool_specs:
 
                             async def make_tool_function(client, function_name):
-                                async def tool_function(**kwargs):
-                                    return await client.call_tool(
-                                        function_name,
-                                        function_args=kwargs,
+                                async def emit_status(description, done):
+                                    await event_emitter(
+                                        {
+                                            'type': 'status',
+                                            'data': {
+                                                'action': 'tool_progress',
+                                                'description': f'{function_name}: {description}',
+                                                'done': done,
+                                            },
+                                        }
                                     )
+
+                                async def tool_function(**kwargs):
+                                    if not event_emitter:
+                                        return await client.call_tool(function_name, function_args=kwargs)
+
+                                    progress_reported = False
+
+                                    # Surface MCP progress notifications as chat status updates.
+                                    # They also keep the transport's SSE stream alive during long calls.
+                                    async def progress_callback(progress, total, message):
+                                        nonlocal progress_reported
+                                        progress_reported = True
+                                        if message:
+                                            await emit_status(message, False)
+                                        elif total:
+                                            await emit_status(f'{progress:g}/{total:g}', False)
+                                        else:
+                                            await emit_status(f'{progress:g}', False)
+
+                                    try:
+                                        return await client.call_tool(
+                                            function_name,
+                                            function_args=kwargs,
+                                            progress_callback=progress_callback,
+                                        )
+                                    finally:
+                                        if progress_reported:
+                                            await emit_status('finished', True)
 
                                 return tool_function
 

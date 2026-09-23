@@ -702,6 +702,15 @@ try:
 except (ValueError, TypeError):
     MCP_INITIALIZE_TIMEOUT = 10
 
+# Maximum total duration (in seconds) of a single MCP tool call. Also used as the
+# SSE read timeout of the streamable HTTP transport, so long-running tools (e.g.
+# video generation) are not silently dropped after the SDK default of 300 seconds.
+MCP_TOOL_CALL_TIMEOUT = os.getenv('MCP_TOOL_CALL_TIMEOUT', '7200')
+try:
+    MCP_TOOL_CALL_TIMEOUT = int(MCP_TOOL_CALL_TIMEOUT)
+except (ValueError, TypeError):
+    MCP_TOOL_CALL_TIMEOUT = 7200
+
 
 ####################################
 # AIOHTTP Connection Pool

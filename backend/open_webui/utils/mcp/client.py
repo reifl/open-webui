@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from contextlib import AsyncExitStack
+from datetime import timedelta
 from typing import Optional
 
 log = logging.getLogger(__name__)
@@ -8,6 +9,8 @@ log = logging.getLogger(__name__)
 import anyio
 import httpx
 from mcp import ClientSession
+from mcp.shared.exceptions import McpError
+from mcp.shared.session import ProgressFnT
 from mcp.client.auth import OAuthClientProvider, TokenStorage
 from mcp.client.streamable_http import streamablehttp_client
 from mcp.shared.auth import OAuthClientInformationFull, OAuthClientMetadata, OAuthToken
@@ -15,6 +18,7 @@ from open_webui.env import (
     AIOHTTP_CLIENT_SESSION_TOOL_SERVER_SSL,
     AIOHTTP_CLIENT_TIMEOUT_TOOL_SERVER,
     MCP_INITIALIZE_TIMEOUT,
+    MCP_TOOL_CALL_TIMEOUT,
 )
 
 
@@ -67,6 +71,7 @@ class MCPClient:
                 self._streams_context = streamablehttp_client(
                     url,
                     headers=headers,
+                    sse_read_timeout=MCP_TOOL_CALL_TIMEOUT,
                     httpx_client_factory=create_httpx_client
                     if AIOHTTP_CLIENT_SESSION_TOOL_SERVER_SSL
                     else create_insecure_httpx_client,
@@ -112,11 +117,29 @@ class MCPClient:
 
         return tool_specs
 
-    async def call_tool(self, function_name: str, function_args: dict) -> Optional[dict]:
+    async def call_tool(
+        self,
+        function_name: str,
+        function_args: dict,
+        progress_callback: Optional[ProgressFnT] = None,
+    ) -> Optional[dict]:
         if not self.session:
             raise RuntimeError('MCP client is not connected.')
 
-        result = await self.session.call_tool(function_name, function_args)
+        try:
+            result = await self.session.call_tool(
+                function_name,
+                function_args,
+                read_timeout_seconds=timedelta(seconds=MCP_TOOL_CALL_TIMEOUT),
+                progress_callback=progress_callback,
+            )
+        except McpError as e:
+            if e.error.code == httpx.codes.REQUEST_TIMEOUT:
+                raise Exception(
+                    f"MCP tool '{function_name}' timed out after {MCP_TOOL_CALL_TIMEOUT} seconds "
+                    '(adjust MCP_TOOL_CALL_TIMEOUT if needed)'
+                ) from e
+            raise
         if not result:
             raise Exception('No result returned from MCP tool call.')
 
