@@ -2,9 +2,10 @@ import asyncio
 import errno
 import hashlib
 import logging
+import mimetypes
 import os
+import re
 import uuid
-from pathlib import Path
 from typing import Optional
 from urllib.parse import quote
 
@@ -20,7 +21,7 @@ from fastapi import (
     UploadFile,
     status,
 )
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from open_webui.config import BYPASS_ADMIN_ACCESS_CONTROL, STORAGE_LOCAL_CACHE, STORAGE_PROVIDER, UPLOAD_DIR
 from open_webui.constants import ERROR_MESSAGES
 from open_webui.events import EVENTS, publish_event
@@ -74,9 +75,7 @@ def _is_text_file(file_path: str, chunk_size: int = 8192) -> bool:
     (e.g. TypeScript .ts → video/mp2t) without maintaining an extension whitelist.
     """
     try:
-        resolved = Storage.get_file(file_path)
-        with open(resolved, 'rb') as f:
-            chunk = f.read(chunk_size)
+        chunk = Storage.read_bytes(file_path, limit=chunk_size)
         if not chunk:
             return False
         # Null bytes are a strong indicator of binary content
@@ -151,13 +150,13 @@ async def process_uploaded_file(
 
             if content_type and strict_match_mime_type(stt_supported, content_type):
                 # Audio / STT-supported files → transcribe then index
-                file_path_processed = await asyncio.to_thread(Storage.get_file, file_path)
-                result = await transcribe(
-                    request,
-                    file_path_processed,
-                    file_metadata,
-                    user,
-                )
+                async with Storage.alocal_plaintext_path(file_path) as file_path_processed:
+                    result = await transcribe(
+                        request,
+                        file_path_processed,
+                        file_metadata,
+                        user,
+                    )
                 await process_file(
                     request,
                     ProcessFileForm(file_id=file_item.id, content=result.get('text', '')),
@@ -788,12 +787,65 @@ async def update_file_data_content_by_id(
 
 
 ############################
+# Serve Stored Files
+############################
+
+_RANGE_RE = re.compile(r'^bytes=(\d*)-(\d*)$')
+
+
+async def storage_file_response(
+    request: Optional[Request],
+    stored_path: str,
+    headers: Optional[dict] = None,
+    media_type: Optional[str] = None,
+) -> Response:
+    """Serve a stored file, decrypting it on the fly (with Range support) when encrypted."""
+    try:
+        size, encrypted, local_path = await asyncio.to_thread(Storage.open_range, stored_path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_MESSAGES.NOT_FOUND)
+
+    if not encrypted:
+        return FileResponse(local_path, headers=headers, media_type=media_type)
+
+    headers = {**(headers or {}), 'Accept-Ranges': 'bytes'}
+    media_type = media_type or mimetypes.guess_type(local_path)[0] or 'application/octet-stream'
+    start, end, status_code = 0, size - 1, status.HTTP_200_OK
+
+    range_header = request.headers.get('range') if request else None
+    match = _RANGE_RE.match(range_header.strip()) if range_header and size > 0 else None
+    if match and (match.group(1) or match.group(2)):
+        if match.group(1):
+            start = int(match.group(1))
+            end = min(int(match.group(2)), size - 1) if match.group(2) else size - 1
+        else:
+            start = max(size - int(match.group(2)), 0)
+        if start > end:
+            return Response(
+                status_code=status.HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE,
+                headers={'Content-Range': f'bytes */{size}'},
+            )
+        status_code = status.HTTP_206_PARTIAL_CONTENT
+        headers['Content-Range'] = f'bytes {start}-{end}/{size}'
+    # Multi-range or malformed headers fall back to the full response (RFC 9110 allows this).
+
+    headers['Content-Length'] = str(max(end - start + 1, 0))
+    return StreamingResponse(
+        Storage.iter_range(local_path, start, end),
+        status_code=status_code,
+        headers=headers,
+        media_type=media_type,
+    )
+
+
+############################
 # Get File Content By Id
 ############################
 
 
 @router.get('/{id}/content')
 async def get_file_content_by_id(
+    request: Request,
     id: str,
     user=Depends(get_verified_user),
     attachment: bool = Query(False),
@@ -809,36 +861,22 @@ async def get_file_content_by_id(
 
     if file.user_id == user.id or user.role == 'admin' or await has_access_to_file(id, 'read', user, db=db):
         try:
-            file_path = await asyncio.to_thread(Storage.get_file, file.path)
-            file_path = Path(file_path)
+            # Handle Unicode filenames
+            content_type = file.meta.get('content_type')
+            filename = file.meta.get('name', file.filename)
+            encoded_filename = quote(filename)  # RFC5987 encoding
+            headers = {}
 
-            # Check if the file already exists in the cache
-            if file_path.is_file():
-                # Handle Unicode filenames
-                filename = file.meta.get('name', file.filename)
-                encoded_filename = quote(filename)  # RFC5987 encoding
-
-                content_type = file.meta.get('content_type')
-                filename = file.meta.get('name', file.filename)
-                encoded_filename = quote(filename)
-                headers = {}
-
-                if attachment:
-                    headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
-                else:
-                    if content_type == 'application/pdf' or filename.lower().endswith('.pdf'):
-                        headers['Content-Disposition'] = f"inline; filename*=UTF-8''{encoded_filename}"
-                        content_type = 'application/pdf'
-                    elif content_type != 'text/plain':
-                        headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
-
-                return FileResponse(file_path, headers=headers, media_type=content_type)
-
+            if attachment:
+                headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
             else:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=ERROR_MESSAGES.NOT_FOUND,
-                )
+                if content_type == 'application/pdf' or filename.lower().endswith('.pdf'):
+                    headers['Content-Disposition'] = f"inline; filename*=UTF-8''{encoded_filename}"
+                    content_type = 'application/pdf'
+                elif content_type != 'text/plain':
+                    headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
+
+            return await storage_file_response(request, file.path, headers=headers, media_type=content_type)
         except HTTPException as e:
             raise e
         except Exception as e:
@@ -857,7 +895,7 @@ async def get_file_content_by_id(
 
 @router.get('/{id}/content/html')
 async def get_html_file_content_by_id(
-    id: str, user=Depends(get_verified_user), db: AsyncSession = Depends(get_async_session)
+    request: Request, id: str, user=Depends(get_verified_user), db: AsyncSession = Depends(get_async_session)
 ):
     file = await Files.get_file_by_id(id, db=db)
 
@@ -876,18 +914,7 @@ async def get_html_file_content_by_id(
 
     if file.user_id == user.id or user.role == 'admin' or await has_access_to_file(id, 'read', user, db=db):
         try:
-            file_path = await asyncio.to_thread(Storage.get_file, file.path)
-            file_path = Path(file_path)
-
-            # Check if the file already exists in the cache
-            if file_path.is_file():
-                log.info('file_path: %s', file_path)
-                return FileResponse(file_path)
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=ERROR_MESSAGES.NOT_FOUND,
-                )
+            return await storage_file_response(request, file.path)
         except HTTPException as e:
             raise e
         except Exception as e:
@@ -906,7 +933,7 @@ async def get_html_file_content_by_id(
 
 @router.get('/{id}/content/{file_name}')
 async def get_file_content_by_id(
-    id: str, user=Depends(get_verified_user), db: AsyncSession = Depends(get_async_session)
+    request: Request, id: str, user=Depends(get_verified_user), db: AsyncSession = Depends(get_async_session)
 ):
     file = await Files.get_file_by_id(id, db=db)
 
@@ -925,17 +952,7 @@ async def get_file_content_by_id(
         headers = {'Content-Disposition': f"attachment; filename*=UTF-8''{encoded_filename}"}
 
         if file_path:
-            file_path = await asyncio.to_thread(Storage.get_file, file_path)
-            file_path = Path(file_path)
-
-            # Check if the file already exists in the cache
-            if file_path.is_file():
-                return FileResponse(file_path, headers=headers)
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=ERROR_MESSAGES.NOT_FOUND,
-                )
+            return await storage_file_response(request, file_path, headers=headers)
         else:
             # File path doesn’t exist, return the content as .txt if possible
             file_content = file.data.get('content', '')

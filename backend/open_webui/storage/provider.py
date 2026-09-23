@@ -1,14 +1,23 @@
+import asyncio
+import io
 import logging
 import os
 import re
 import shutil
+import tempfile
+import time
 from abc import ABC, abstractmethod
-from typing import BinaryIO, Dict, Tuple
+from contextlib import asynccontextmanager, contextmanager
+from typing import AsyncIterator, BinaryIO, Dict, Iterator, Optional, Tuple
 
 from open_webui.config import (
     AZURE_STORAGE_CONTAINER_NAME,
     AZURE_STORAGE_ENDPOINT,
     AZURE_STORAGE_KEY,
+    ENABLE_FILE_ENCRYPTION,
+    FILE_ENCRYPTION_ACTIVE_KEY_ID,
+    FILE_ENCRYPTION_KEYS,
+    FILE_ENCRYPTION_TEMP_DIR,
     GCS_BUCKET_NAME,
     GOOGLE_APPLICATION_CREDENTIALS_JSON,
     S3_ACCESS_KEY_ID,
@@ -24,6 +33,7 @@ from open_webui.config import (
     UPLOAD_DIR,
 )
 from open_webui.constants import ERROR_MESSAGES
+from open_webui.storage.encryption import MAGIC, FileCipher, FileEncryptionError, is_encrypted, parse_keys
 from open_webui.utils.json_codec import JSONCodec
 
 from open_webui.env import USE_SLIM
@@ -353,4 +363,140 @@ def get_storage_provider(storage_provider: str):
     return Storage
 
 
-Storage = get_storage_provider(STORAGE_PROVIDER)
+class EncryptedStorageProvider(StorageProvider):
+    """
+    Wraps any storage provider and encrypts file contents before they reach it.
+
+    Writes are encrypted only when encryption is enabled. Reads detect encrypted
+    files by their header, so plaintext files written before encryption was
+    enabled (and encrypted files after it was disabled) stay readable.
+
+    Callers must read stored files through read_bytes, open_range or
+    local_plaintext_path; get_file returns the raw (possibly encrypted) path.
+    """
+
+    def __init__(self, inner: StorageProvider, cipher: Optional[FileCipher], encrypt_writes: bool, temp_dir: str):
+        if encrypt_writes and (cipher is None or not cipher.active_kid):
+            raise RuntimeError(
+                'ENABLE_FILE_ENCRYPTION is set but no active key is configured. '
+                'Set FILE_ENCRYPTION_KEYS and FILE_ENCRYPTION_ACTIVE_KEY_ID.'
+            )
+        self.inner = inner
+        self.cipher = cipher
+        self.encrypt_writes = encrypt_writes
+        self.temp_dir = temp_dir
+        self._sweep_stale_temp_dirs()
+
+    def _sweep_stale_temp_dirs(self, max_age_seconds: int = 3600) -> None:
+        """Remove decrypted work dirs left behind by a crash. Recent ones may belong to other workers."""
+        if not os.path.isdir(self.temp_dir):
+            return
+        cutoff = time.time() - max_age_seconds
+        for entry in os.scandir(self.temp_dir):
+            try:
+                if entry.is_dir(follow_symlinks=False) and entry.stat().st_mtime < cutoff:
+                    shutil.rmtree(entry.path, ignore_errors=True)
+            except OSError:
+                pass
+
+    def upload_file(self, file: BinaryIO, filename: str, tags: Dict[str, str]) -> Tuple[bytes, str]:
+        contents = file.read()
+        if not contents:
+            raise ValueError(ERROR_MESSAGES.EMPTY_CONTENT)
+        payload = self.cipher.encrypt_bytes(contents) if self.encrypt_writes else contents
+        _, file_path = self.inner.upload_file(io.BytesIO(payload), filename, tags)
+        # Callers hash and index the returned contents, so hand back the plaintext.
+        return contents, file_path
+
+    def get_file(self, file_path: str) -> str:
+        return self.inner.get_file(file_path)
+
+    def delete_file(self, file_path: str) -> None:
+        self.inner.delete_file(file_path)
+
+    def delete_all_files(self) -> None:
+        self.inner.delete_all_files()
+
+    def _require_cipher(self) -> FileCipher:
+        if self.cipher is None:
+            raise FileEncryptionError('File is encrypted but FILE_ENCRYPTION_KEYS is not configured')
+        return self.cipher
+
+    @staticmethod
+    def _is_encrypted_file(f: BinaryIO) -> bool:
+        encrypted = is_encrypted(f.read(len(MAGIC)))
+        f.seek(0)
+        return encrypted
+
+    def read_bytes(self, file_path: str, limit: Optional[int] = None) -> bytes:
+        """Return the plaintext contents (optionally only the first `limit` bytes)."""
+        local_path = self.inner.get_file(file_path)
+        with open(local_path, 'rb') as f:
+            if not self._is_encrypted_file(f):
+                return f.read() if limit is None else f.read(limit)
+            end = None if limit is None else limit - 1
+            return b''.join(self._require_cipher().decrypt_range(f, 0, end))
+
+    def open_range(self, file_path: str) -> Tuple[int, bool, str]:
+        """Return (plaintext_size, is_encrypted, local_path) for serving the file."""
+        local_path = self.inner.get_file(file_path)
+        with open(local_path, 'rb') as f:
+            if not self._is_encrypted_file(f):
+                return os.path.getsize(local_path), False, local_path
+            return self._require_cipher().plaintext_size(f), True, local_path
+
+    def iter_range(self, local_path: str, start: int = 0, end: Optional[int] = None) -> Iterator[bytes]:
+        """Yield decrypted bytes [start, end] of an encrypted local file (end inclusive)."""
+        with open(local_path, 'rb') as f:
+            yield from self._require_cipher().decrypt_range(f, start, end)
+
+    @contextmanager
+    def local_plaintext_path(self, file_path: str) -> Iterator[str]:
+        """
+        Yield a local path with plaintext contents for consumers that need a real file
+        (document loaders, transcription). Decrypted copies live in a private per-call
+        temp dir that is removed on exit, together with anything consumers wrote next
+        to the file (e.g. converted or compressed audio).
+        """
+        local_path = self.inner.get_file(file_path)
+        with open(local_path, 'rb') as f:
+            encrypted = self._is_encrypted_file(f)
+        if not encrypted:
+            yield local_path
+            return
+
+        os.makedirs(self.temp_dir, mode=0o700, exist_ok=True)
+        work_dir = tempfile.mkdtemp(dir=self.temp_dir)
+        try:
+            tmp_path = os.path.join(work_dir, os.path.basename(local_path))
+            with open(tmp_path, 'wb') as out, open(local_path, 'rb') as f:
+                for chunk in self._require_cipher().decrypt_range(f):
+                    out.write(chunk)
+            yield tmp_path
+        finally:
+            shutil.rmtree(work_dir, ignore_errors=True)
+
+    @asynccontextmanager
+    async def alocal_plaintext_path(self, file_path: str) -> AsyncIterator[str]:
+        """Async variant of local_plaintext_path; download/decrypt/cleanup run in a thread."""
+        cm = self.local_plaintext_path(file_path)
+        path = await asyncio.to_thread(cm.__enter__)
+        try:
+            yield path
+        finally:
+            await asyncio.to_thread(cm.__exit__, None, None, None)
+
+
+def get_file_cipher() -> Optional[FileCipher]:
+    keys = parse_keys(FILE_ENCRYPTION_KEYS)
+    if not keys:
+        return None
+    return FileCipher(keys, FILE_ENCRYPTION_ACTIVE_KEY_ID or None)
+
+
+Storage = EncryptedStorageProvider(
+    get_storage_provider(STORAGE_PROVIDER),
+    cipher=get_file_cipher(),
+    encrypt_writes=ENABLE_FILE_ENCRYPTION,
+    temp_dir=FILE_ENCRYPTION_TEMP_DIR,
+)

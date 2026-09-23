@@ -6,7 +6,6 @@ import re
 from pathlib import Path
 from typing import Optional
 
-import aiofiles
 from fastapi import (
     APIRouter,
     Depends,
@@ -327,13 +326,10 @@ async def get_image_base64_from_file_id(id: str, user=None) -> Optional[str]:
         return None
 
     try:
-        file_path = await asyncio.to_thread(Storage.get_file, file.path)
-        file_path = Path(file_path)
-
-        # Check if the file already exists in the cache
-        if file_path.is_file():
-            async with aiofiles.open(file_path, 'rb') as image_file:
-                encoded_string = base64.b64encode(await image_file.read()).decode('utf-8')
+        file_path = Path(file.path)
+        image_data = await asyncio.to_thread(Storage.read_bytes, file.path)
+        if image_data:
+            encoded_string = base64.b64encode(image_data).decode('utf-8')
             content_type = mimetypes.guess_type(file_path.name)[0] or (file.meta or {}).get('content_type')
             if not content_type and ENABLE_IMAGE_CONTENT_TYPE_EXTENSION_FALLBACK:
                 content_type = _IMAGE_MIME_FALLBACK.get(file_path.suffix.lower())

@@ -12,10 +12,8 @@ from types import SimpleNamespace
 from typing import Optional
 from urllib.parse import quote, urlparse
 
-import aiofiles
 import aiohttp
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse
 from open_webui.config import (
     CACHE_DIR,
     ENABLE_OPENAI_IMAGE_EDIT_NORMALIZATION,
@@ -28,9 +26,12 @@ from open_webui.events import EVENTS, publish_event
 from open_webui.internal.db import get_async_session
 from open_webui.models.chats import Chats
 from open_webui.models.config import Config
+from open_webui.models.files import Files
 from open_webui.retrieval.web.utils import get_ssrf_safe_session, validate_url
-from open_webui.routers.files import get_file_content_by_id, upload_file_handler
+from open_webui.routers.files import upload_file_handler
+from open_webui.storage.provider import Storage
 from open_webui.utils.access_control import has_permission
+from open_webui.utils.access_control.files import has_access_to_file
 from open_webui.utils.auth import get_admin_user, get_verified_user
 from open_webui.utils.headers import include_user_info_headers
 from open_webui.utils.images.comfyui import (
@@ -948,16 +949,23 @@ async def image_edits(
                 else:
                     file_id = data
 
-                file_response = await get_file_content_by_id(file_id, user)
-                if isinstance(file_response, FileResponse):
-                    file_path = file_response.path
+                file = await Files.get_file_by_id(file_id)
+                if (
+                    not file
+                    or not file.path
+                    or not (
+                        file.user_id == user.id
+                        or user.role == 'admin'
+                        or await has_access_to_file(file_id, 'read', user)
+                    )
+                ):
+                    raise HTTPException(status_code=404, detail=ERROR_MESSAGES.NOT_FOUND)
 
-                    async with aiofiles.open(file_path, 'rb') as f:
-                        file_bytes = await f.read()
-                    image_data = base64.b64encode(file_bytes).decode('utf-8')
-                    mime_type, _ = mimetypes.guess_type(file_path)
+                file_bytes = await asyncio.to_thread(Storage.read_bytes, file.path)
+                image_data = base64.b64encode(file_bytes).decode('utf-8')
+                mime_type = mimetypes.guess_type(file.path)[0] or (file.meta or {}).get('content_type')
 
-                    return f'data:{mime_type};base64,{image_data}'
+                return f'data:{mime_type};base64,{image_data}'
             return data
 
         # Load image(s) from URL(s) if necessary

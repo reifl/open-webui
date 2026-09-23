@@ -167,6 +167,16 @@ AZURE_STORAGE_ENDPOINT = os.getenv('AZURE_STORAGE_ENDPOINT', None)
 AZURE_STORAGE_CONTAINER_NAME = os.getenv('AZURE_STORAGE_CONTAINER_NAME', None)
 AZURE_STORAGE_KEY = os.getenv('AZURE_STORAGE_KEY', None)
 
+# --- File Encryption at Rest ---
+# Keys are only read from the environment and never stored in the database.
+# Controls writes only: encrypted files are detected by their header on read.
+ENABLE_FILE_ENCRYPTION = os.getenv('ENABLE_FILE_ENCRYPTION', 'false').lower() == 'true'
+FILE_ENCRYPTION_KEYS = os.getenv('FILE_ENCRYPTION_KEYS', '')  # 'kid1:<base64 32 bytes>,kid2:<base64 32 bytes>'
+FILE_ENCRYPTION_ACTIVE_KEY_ID = os.getenv('FILE_ENCRYPTION_ACTIVE_KEY_ID', '')
+# Short-lived decrypted copies for loaders/transcription. Point this at a tmpfs
+# (e.g. /dev/shm, with a large enough shm_size in Docker) to keep plaintext off disk.
+FILE_ENCRYPTION_TEMP_DIR = os.getenv('FILE_ENCRYPTION_TEMP_DIR', str(DATA_DIR / 'tmp'))
+
 ####################################
 # File Upload DIR
 ####################################

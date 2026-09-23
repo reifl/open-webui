@@ -112,9 +112,7 @@ async def _verify_background_image(url: str | None, user, db, previous_url: str 
     ):
         raise HTTPException(status_code=403, detail='Background image is not accessible.')
     try:
-        path = await asyncio.to_thread(Storage.get_file, file.path)
-        with open(path, 'rb') as image:
-            data = await asyncio.to_thread(image.read, BACKGROUND_IMAGE_MAX_BYTES + 1)
+        data = await asyncio.to_thread(Storage.read_bytes, file.path, BACKGROUND_IMAGE_MAX_BYTES + 1)
         content_type = await asyncio.to_thread(validate_background_image, data)
     except (ValueError, OSError) as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
@@ -413,9 +411,7 @@ async def export_models(
                 file = await Files.get_file_by_id(url.split('/')[-2], db=db)
                 if not file:
                     raise ValueError('Image file is missing')
-                path = await asyncio.to_thread(Storage.get_file, file.path)
-                with open(path, 'rb') as image:
-                    image_data = await asyncio.to_thread(image.read, BACKGROUND_IMAGE_MAX_BYTES + 1)
+                image_data = await asyncio.to_thread(Storage.read_bytes, file.path, BACKGROUND_IMAGE_MAX_BYTES + 1)
                 content_type = await asyncio.to_thread(validate_background_image, image_data)
                 data['background_image_data'] = f'data:{content_type};base64,' + base64.b64encode(image_data).decode(
                     'ascii'
