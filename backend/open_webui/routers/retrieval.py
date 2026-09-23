@@ -2020,7 +2020,6 @@ async def process_file(
                 # Usage: /files/
                 file_path = file.path
                 if file_path:
-                    file_path = await asyncio.to_thread(Storage.get_file, file_path)
                     loader_config = await get_loader_config()
                     loader = build_loader_from_config(request, loader_config)
                     loader.user = user
@@ -2029,7 +2028,8 @@ async def process_file(
                         'file_name': file.filename,
                         'file_content_type': file.meta.get('content_type'),
                     }
-                    docs = await loader.aload(file.filename, file.meta.get('content_type'), file_path)
+                    async with Storage.alocal_plaintext_path(file_path) as plaintext_path:
+                        docs = await loader.aload(file.filename, file.meta.get('content_type'), plaintext_path)
 
                     docs = [
                         Document(

@@ -21,3 +21,6 @@ backend/data/*
 
 .venv
 .git
+
+# Local encryption test instance (contains a copy of real data)
+enc-test
