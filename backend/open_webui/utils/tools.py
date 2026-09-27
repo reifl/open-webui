@@ -98,6 +98,7 @@ from open_webui.tools.builtin import (
     view_knowledge_file,
     view_note,
     view_skill,
+    view_video,
     write_note,
 )
 from open_webui.utils.access_control import has_access, has_connection_access, has_permission
@@ -109,7 +110,7 @@ from open_webui.utils.headers import (
     normalize_bearer_token,
 )
 from open_webui.utils.json_codec import JSONCodec
-from open_webui.utils.misc import is_string_allowed
+from open_webui.utils.misc import is_string_allowed, is_video_content_type
 from open_webui.utils.plugin import get_tool_contents_cache, get_tools_cache, load_tool_module_by_id
 from open_webui.utils.terminals import (
     TERMINAL_CONTEXT_HEADER,
@@ -599,6 +600,23 @@ async def get_builtin_tools(
         and await has_user_chat_permission('file_upload')
     ):
         builtin_functions.extend([list_chat_files, query_chat_files, grep_chat_files, view_file])
+
+    # Video re-watch tool — only offered once the model has explicitly opted into
+    # the 'video' capability (default: off) and the chat actually has a video
+    # attached. This lets the model re-fetch a video's content in later turns,
+    # since videos (unlike images) are only auto-attached on the turn they were
+    # uploaded in (see middleware.py's DB-replay injection logic).
+    has_chat_videos = any(
+        isinstance(item, dict) and (item.get('type') == 'video' or is_video_content_type(item.get('content_type')))
+        for item in chat_files
+    )
+    if (
+        is_builtin_tool_enabled('files')
+        and get_model_capability('video', False)
+        and has_chat_videos
+        and await has_user_chat_permission('file_upload')
+    ):
+        builtin_functions.append(view_video)
 
     # Knowledge base tools - conditional injection based on model knowledge
     # If model has attached knowledge (any type), only provide query_knowledge_files

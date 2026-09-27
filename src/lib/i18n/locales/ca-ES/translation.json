@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "Capacitats",
 	"settings.admin.models.capabilities.usage.description": "Envia `stream_options: { include_usage: true }` a la sol·licitud.\nEls proveïdors compatibles retornaran la informació d'ús del token a la resposta quan s'estableixi.",
 	"settings.admin.models.capabilities.usage.label": "Ús",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "El model accepta entrades d'imatge",
 	"settings.admin.models.capabilities.vision.label": "Visió",
 	"settings.admin.models.capabilities.webSearch.description": "El model pot cercar informació a la web",

@@ -2623,6 +2623,8 @@
 	"settings.admin.models.capabilities.title": "Schopnosti",
 	"settings.admin.models.capabilities.usage.description": "Odošle `stream_options: { include_usage: true }` v žiadosti. Podporovaní poskytovatelia vrátia informácie o využití tokenov v odpovedi, keď je táto možnosť nastavená.",
 	"settings.admin.models.capabilities.usage.label": "",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model prijíma vstupy vo forme obrázkov",
 	"settings.admin.models.capabilities.vision.label": "",
 	"settings.admin.models.capabilities.webSearch.description": "",

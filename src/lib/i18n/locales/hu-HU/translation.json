@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Képességek",
 	"settings.admin.models.capabilities.usage.description": "A kérésben elküldi a `stream_options: { include_usage: true }` opciót.\nA támogatott szolgáltatók token használati információt küldenek vissza a válaszban, ha be van állítva.",
 	"settings.admin.models.capabilities.usage.label": "Használat",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "A modell elfogad képbemenetet",
 	"settings.admin.models.capabilities.vision.label": "Képfeldolgozás",
 	"settings.admin.models.capabilities.webSearch.description": "A modell információkat kereshet a weben",

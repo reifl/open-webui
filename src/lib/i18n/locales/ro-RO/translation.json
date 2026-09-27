@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "Capabilități",
 	"settings.admin.models.capabilities.usage.description": "Trimite `stream_options: { include_usage: true }` în cerere. Furnizorii care suportă această opțiune vor returna informații despre utilizarea token-urilor în răspuns când este setată.",
 	"settings.admin.models.capabilities.usage.label": "",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Modelul acceptă imagini ca intrări.",
 	"settings.admin.models.capabilities.vision.label": "",
 	"settings.admin.models.capabilities.webSearch.description": "",

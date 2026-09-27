@@ -2575,6 +2575,8 @@
 	"settings.admin.models.capabilities.title": "機能",
 	"settings.admin.models.capabilities.usage.description": "リクエストに`stream_options: { include_usage: true }`を含めます。サポートされているプロバイダーは、レスポンスにトークン使用情報を返すようになります。",
 	"settings.admin.models.capabilities.usage.label": "使用量",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "モデルは画像入力を受け入れます",
 	"settings.admin.models.capabilities.vision.label": "視覚",
 	"settings.admin.models.capabilities.webSearch.description": "モデルは情報をウェブ検索できます",

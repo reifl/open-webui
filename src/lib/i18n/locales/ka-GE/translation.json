@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "შესაძლებლობები",
 	"settings.admin.models.capabilities.usage.description": "",
 	"settings.admin.models.capabilities.usage.label": "გამოყენება",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "მოდელი იღებს გამოსახულებებს",
 	"settings.admin.models.capabilities.vision.label": "ხედვა",
 	"settings.admin.models.capabilities.webSearch.description": "მოდელს შეუძლია ინტერნეტში ინფორმაციის ძებნა",

@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "יכולות",
 	"settings.admin.models.capabilities.usage.description": "",
 	"settings.admin.models.capabilities.usage.label": "",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "",
 	"settings.admin.models.capabilities.vision.label": "",
 	"settings.admin.models.capabilities.webSearch.description": "",

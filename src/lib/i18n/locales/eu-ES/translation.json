@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Gaitasunak",
 	"settings.admin.models.capabilities.usage.description": "Bidaltzen du `stream_options: { include_usage: true }` eskaeran.\nOnartutako hornitzaileek token erabileraren informazioa itzuliko dute erantzunean ezarrita dagoenean.",
 	"settings.admin.models.capabilities.usage.label": "Erabilera",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Modeloak irudi sarrerak onartzen ditu",
 	"settings.admin.models.capabilities.vision.label": "Ikusmena",
 	"settings.admin.models.capabilities.webSearch.description": "Modeloak informazioa bila dezake webean",

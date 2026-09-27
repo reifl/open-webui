@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Имкониятлар",
 	"settings.admin.models.capabilities.usage.description": "Сўровда ъстреам_оптионс: { инcлуде_усаге: труе }ъ юборади.\nҚўллаб-қувватланадиган провайдерлар ўрнатилганда жавобда токен фойдаланиш маълумотларини қайтаради.",
 	"settings.admin.models.capabilities.usage.label": "Фойдаланиш",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Модел расм киритишни қабул қилади",
 	"settings.admin.models.capabilities.vision.label": "Визён",
 	"settings.admin.models.capabilities.webSearch.description": "Модел маълумот учун Интернетда қидириши мумкин",

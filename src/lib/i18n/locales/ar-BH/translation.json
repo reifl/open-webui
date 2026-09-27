@@ -2655,6 +2655,8 @@
 	"settings.admin.models.capabilities.title": "قدرات",
 	"settings.admin.models.capabilities.usage.description": "يرسل `stream_options: { include_usage: true }` في الطلب.\nالمزودون المدعومون سيُرجعون معلومات استخدام الرموز في الاستجابة عند التفعيل.",
 	"settings.admin.models.capabilities.usage.label": "الاستخدام",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "النموذج يقبل إدخالات الصور",
 	"settings.admin.models.capabilities.vision.label": "الرؤية",
 	"settings.admin.models.capabilities.webSearch.description": "يمكن للنموذج البحث على الويب عن المعلومات",

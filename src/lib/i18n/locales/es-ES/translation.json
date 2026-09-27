@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "Capacidades",
 	"settings.admin.models.capabilities.usage.description": "Envía en la solicitud de transmisión la opción: `{ include_usage: true }`.\nSi se activa, los proveedores que soporten esta función devolverán en la respuesta información de uso de los token.",
 	"settings.admin.models.capabilities.usage.label": "Uso",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Modelo acepta entrada de imagenes",
 	"settings.admin.models.capabilities.vision.label": "Visión",
 	"settings.admin.models.capabilities.webSearch.description": "Modelo puede buscar información en la web",

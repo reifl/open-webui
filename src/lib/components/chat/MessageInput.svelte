@@ -59,7 +59,8 @@
 		getUserPosition,
 		getUserTimezone,
 		getWeekday,
-		isRasterImageContentType
+		isRasterImageContentType,
+		isVideoContentType
 	} from '$lib/utils';
 	import { uploadFile } from '$lib/apis/files';
 	import { getCwd, uploadNewFileToTerminal } from '$lib/apis/terminal';
@@ -1970,6 +1971,44 @@
 															</svg>
 														</Tooltip>
 													{/if}
+												</div>
+												<div class=" absolute -top-1 -right-1">
+													<button
+														class=" bg-white text-black border border-white rounded-full {($settings?.highContrastMode ??
+														false)
+															? ''
+															: 'hover-reveal transition'}"
+														type="button"
+														aria-label={$i18n.t('Remove file')}
+														on:click={() => {
+															files.splice(fileIdx, 1);
+															files = files;
+														}}
+													>
+														<svg
+															xmlns="http://www.w3.org/2000/svg"
+															viewBox="0 0 20 20"
+															fill="currentColor"
+															aria-hidden="true"
+															class="size-4"
+														>
+															<path
+																d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+															/>
+														</svg>
+													</button>
+												</div>
+											</div>
+										{:else if file.type === 'video' || isVideoContentType(file?.content_type)}
+											{@const fileUrl =
+												file.url.startsWith('data') || file.url.startsWith('http')
+													? file.url
+													: `${WEBUI_API_BASE_URL}/files/${file.url}${file?.content_type ? '/content' : ''}`}
+											<div class=" relative group">
+												<div class="relative flex items-center">
+													<!-- svelte-ignore a11y-media-has-caption -->
+													<video src={fileUrl} controls class="size-10 rounded-xl object-cover"
+													></video>
 												</div>
 												<div class=" absolute -top-1 -right-1">
 													<button

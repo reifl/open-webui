@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Tizemmar",
 	"settings.admin.models.capabilities.usage.description": "",
 	"settings.admin.models.capabilities.usage.label": "Aseqdec",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Mudell iqebbel inekcamen n tugna",
 	"settings.admin.models.capabilities.vision.label": "Vision",
 	"settings.admin.models.capabilities.webSearch.description": "Tamudemt-a tezmer ad tnadi deg Web ɣef isallen",

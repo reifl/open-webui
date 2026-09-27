@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Møguleikar",
 	"settings.admin.models.capabilities.usage.description": "Sendir `stream_options: { include_usage: true }` í umbønini.\nVeitarar við stuðli senda upplýsingar um tokennýtslu aftur í svarinum, tá hetta er sett.",
 	"settings.admin.models.capabilities.usage.label": "Nýtsla",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Modellið tekur ímóti myndum",
 	"settings.admin.models.capabilities.vision.label": "Sjón",
 	"settings.admin.models.capabilities.webSearch.description": "Modellið kann leita á netinum eftir upplýsingum",

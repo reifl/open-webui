@@ -2575,6 +2575,8 @@
 	"settings.admin.models.capabilities.title": "Keupayaan",
 	"settings.admin.models.capabilities.usage.description": "Menghantar `stream_options: { include_usage: true }` dalam permintaan. Pembekal yang disokong akan mengembalikan maklumat penggunaan token dalam respons apabila ditetapkan.",
 	"settings.admin.models.capabilities.usage.label": "Penggunaan",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model menerima input imej",
 	"settings.admin.models.capabilities.vision.label": "Penglihatan",
 	"settings.admin.models.capabilities.webSearch.description": "Model boleh mencari maklumat di web",

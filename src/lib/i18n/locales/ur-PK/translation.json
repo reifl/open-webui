@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "صلاحیتیں",
 	"settings.admin.models.capabilities.usage.description": "درخواست میں `stream_options: { include_usage: true }` بھیجتا ہے\nمعاون فراہم کنندگان، جب سیٹ کیا جاتا ہے تو، جواب میں ٹوکن کے استعمال کی معلومات واپس کر دیں گے",
 	"settings.admin.models.capabilities.usage.label": "",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "ماڈل تصویری ان پٹس قبول کرتا ہے",
 	"settings.admin.models.capabilities.vision.label": "",
 	"settings.admin.models.capabilities.webSearch.description": "",

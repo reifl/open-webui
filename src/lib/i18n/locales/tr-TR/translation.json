@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Yetenekler",
 	"settings.admin.models.capabilities.usage.description": "İsteğe `stream_options: { include_usage: true }` gönderir.\nDesteklenen sağlayıcılar, ayarlandığında yanıtta token kullanım bilgilerini döndürecektir.",
 	"settings.admin.models.capabilities.usage.label": "Kullanım",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model görüntü girdilerini kabul eder",
 	"settings.admin.models.capabilities.vision.label": "Görü",
 	"settings.admin.models.capabilities.webSearch.description": "Model bilgileri aramak için web'de arama yapabilir",

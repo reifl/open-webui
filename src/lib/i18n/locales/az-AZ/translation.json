@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "İmkanlar",
 	"settings.admin.models.capabilities.usage.description": "Sorğuda `stream_options: { include_usage: true }` göndərir. Aktiv edildikdə, dəstəklənən təminatçılar cavabda token istifadə məlumatlarını qaytaracaq.",
 	"settings.admin.models.capabilities.usage.label": "İstifadə",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model şəkil girişlərini qəbul edir",
 	"settings.admin.models.capabilities.vision.label": "Görüntü (Vision)",
 	"settings.admin.models.capabilities.webSearch.description": "Model məlumat üçün vebdə axtarış edə bilər",

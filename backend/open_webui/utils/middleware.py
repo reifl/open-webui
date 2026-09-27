@@ -94,6 +94,7 @@ from open_webui.utils.files import (
     get_file_url_from_base64,
     get_image_base64_from_url,
     get_image_url_from_base64,
+    get_video_base64_from_url,
 )
 from open_webui.utils.filter import (
     FilterContext,
@@ -120,6 +121,7 @@ from open_webui.utils.misc import (
     get_system_message,
     is_raster_image_content_type,
     is_string_allowed,
+    is_video_content_type,
     merge_system_messages,
     prepend_to_first_user_message_content,
     replace_system_message_content,
@@ -1049,6 +1051,29 @@ async def store_tool_result_image(request, image_url, metadata, user):
         return image_url
 
 
+async def store_tool_result_video(request, video_url, metadata, user):
+    """Keep saved tool videos out of chat JSON, falling back to inline data if storage fails."""
+    metadata = metadata or {}
+    if (
+        not isinstance(video_url, str)
+        or not video_url.startswith('data:video/')
+        or not is_saved_chat_id(metadata.get('chat_id'))
+    ):
+        return video_url
+
+    try:
+        stored_url = await get_file_url_from_base64(
+            request,
+            video_url,
+            {key: metadata.get(key) for key in ('chat_id', 'message_id', 'session_id')},
+            user,
+        )
+        return stored_url or video_url
+    except Exception:
+        log.warning('Could not store tool video; retaining inline video')
+        return video_url
+
+
 async def process_tool_result(
     request,
     tool_function_name,
@@ -1173,6 +1198,9 @@ async def process_tool_result(
     if isinstance(tool_result, str) and tool_result.startswith('data:image/'):
         tool_result_files.append({'type': 'image', 'url': tool_result})
         tool_result = f'{tool_function_name}: Image file read successfully.'
+    elif isinstance(tool_result, str) and tool_result.startswith('data:video/'):
+        tool_result_files.append({'type': 'video', 'url': tool_result})
+        tool_result = f'{tool_function_name}: Video file read successfully.'
 
     if isinstance(tool_result, list):
         if tool_type == 'mcp':  # MCP
@@ -2258,6 +2286,57 @@ async def convert_url_images_to_base64(form_data, user=None):
     return form_data
 
 
+async def convert_url_videos_to_base64(form_data, user=None):
+    messages = form_data.get('messages', [])
+
+    for message in messages:
+        content = message.get('content')
+        if not isinstance(content, list):
+            continue
+
+        new_content = []
+
+        for item in content:
+            if not isinstance(item, dict) or item.get('type') not in ('video_url', 'input_video'):
+                new_content.append(item)
+                continue
+
+            video_url_data = item.get('video_url', {})
+            if isinstance(video_url_data, dict):
+                video_url = video_url_data.get('url') or ''
+            elif isinstance(video_url_data, str):
+                video_url = video_url_data
+            else:
+                video_url = ''
+            if video_url.startswith('data:video/'):
+                new_content.append(item)
+                continue
+
+            try:
+                base64_data = await get_video_base64_from_url(video_url, user=user)
+                if base64_data and isinstance(video_url_data, str):
+                    new_content.append({**item, 'video_url': base64_data})
+                elif base64_data:
+                    video_url_payload = {'url': base64_data}
+                    if isinstance(video_url_data, dict) and video_url_data.get('detail'):
+                        video_url_payload['detail'] = video_url_data['detail']
+                    new_content.append(
+                        {
+                            'type': item['type'],
+                            'video_url': video_url_payload,
+                        }
+                    )
+                else:
+                    new_content.append(item)
+            except Exception as e:
+                log.debug('Error converting video URL to base64: %s', e)
+                new_content.append(item)
+
+        message['content'] = new_content
+
+    return form_data
+
+
 MESSAGE_REPLAY_KEYS = ('id', 'role', 'content', 'output', 'files', 'contextSummary', 'usage', 'model')
 
 
@@ -2466,6 +2545,10 @@ async def process_chat_payload(request, form_data, user, metadata, model):
             form_data['model'] = selected_model_id
             metadata['selected_model_id'] = selected_model_id
 
+    # Whether this model has explicitly opted into receiving video content
+    # (defaults to False, unlike other capabilities, for backward compatibility).
+    video_enabled = (model.get('info', {}).get('meta', {}).get('capabilities') or {}).get('video', False)
+
     # Captured before apply_params_to_form_data pops 'params'; populates metadata['system_prompt'] below
     model_system_prompt = (form_data.get('params') or {}).get('system')
 
@@ -2501,7 +2584,25 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                     for f in message.get('files', [])
                     if f.get('type') == 'image' or is_raster_image_content_type(f.get('content_type'))
                 ]
-                if message.get('role') == 'user' and image_files:
+                # Video files are only forwarded to the model when the model has
+                # explicitly opted into the 'video' capability (default: off), and
+                # only for the message being answered in this turn — unlike images,
+                # video attachments are NOT re-embedded on every subsequent turn of
+                # the same chat, since a base64-encoded video can be orders of
+                # magnitude larger than an image and would otherwise multiply the
+                # request size/cost on every follow-up message. Older video
+                # attachments remain available to the model via the builtin file
+                # tools (list_chat_files/view_file) instead of being resent raw.
+                video_files = (
+                    [
+                        f
+                        for f in message.get('files', [])
+                        if f.get('type') == 'video' or is_video_content_type(f.get('content_type'))
+                    ]
+                    if video_enabled and message.get('id') == user_message_id
+                    else []
+                )
+                if message.get('role') == 'user' and (image_files or video_files):
                     text_content = message.get('content', '')
                     if isinstance(text_content, str):
                         message['content'] = [
@@ -2512,6 +2613,14 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                                     'image_url': {'url': f['url']},
                                 }
                                 for f in image_files
+                                if f.get('url')
+                            ],
+                            *[
+                                {
+                                    'type': 'video_url',
+                                    'video_url': {'url': f['url']},
+                                }
+                                for f in video_files
                                 if f.get('url')
                             ],
                         ]
@@ -2576,6 +2685,8 @@ async def process_chat_payload(request, form_data, user, metadata, model):
             pass
 
     form_data = await convert_url_images_to_base64(form_data, user=user)
+    if video_enabled:
+        form_data = await convert_url_videos_to_base64(form_data, user=user)
 
     event_emitter = await get_event_emitter(metadata)
     event_caller = await get_event_call(metadata)
@@ -2842,6 +2953,10 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                 if isinstance(file, dict)
                 and file.get('type') != 'image'
                 and not (file.get('content_type') or '').startswith('image/')
+                and (
+                    not video_enabled
+                    or (file.get('type') != 'video' and not (file.get('content_type') or '').startswith('video/'))
+                )
             ]
             if note_files:
                 files = [*(files or []), *note_files]
@@ -3559,6 +3674,9 @@ async def drain_approved_tool_calls(request, form_data, user, model, metadata) -
             if file_item.get('type') == 'image' and file_item.get('url', '').startswith('data:'):
                 image_url = await store_tool_result_image(request, file_item['url'], metadata, user)
                 output_parts.append({'type': 'input_image', 'image_url': image_url})
+            elif file_item.get('type') == 'video' and file_item.get('url', '').startswith('data:'):
+                video_url = await store_tool_result_video(request, file_item['url'], metadata, user)
+                output_parts.append({'type': 'input_video', 'video_url': video_url})
             else:
                 display_files.append(file_item)
 
@@ -6201,7 +6319,7 @@ async def streaming_chat_response_handler(response, ctx):
                         )
                         result_status_by_call_id[result.get('tool_call_id', '')] = local_output_status
 
-                        # Separate image data URIs (for LLM via input_image) from
+                        # Separate image/video data URIs (for LLM via input_image/input_video) from
                         # other files (for frontend display via files attribute).
                         display_files = []
                         for file_item in result.get('files', []):
@@ -6209,6 +6327,10 @@ async def streaming_chat_response_handler(response, ctx):
                                 # LLM-only: add as input_image part, not frontend display output.
                                 image_url = await store_tool_result_image(request, file_item['url'], metadata, user)
                                 output_parts.append({'type': 'input_image', 'image_url': image_url})
+                            elif file_item.get('type') == 'video' and file_item.get('url', '').startswith('data:'):
+                                # LLM-only: add as input_video part, not frontend display output.
+                                video_url = await store_tool_result_video(request, file_item['url'], metadata, user)
+                                output_parts.append({'type': 'input_video', 'video_url': video_url})
                             else:
                                 # Frontend display (MCP images, audio, etc.)
                                 display_files.append(file_item)
@@ -6355,6 +6477,8 @@ async def streaming_chat_response_handler(response, ctx):
                                 )
 
                         new_form_data = await convert_url_images_to_base64(new_form_data, user=user)
+                        if (model.get('info', {}).get('meta', {}).get('capabilities') or {}).get('video', False):
+                            new_form_data = await convert_url_videos_to_base64(new_form_data, user=user)
 
                         if filter_functions:
                             new_form_data, _ = await process_filter_functions(

@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Võimekused",
 	"settings.admin.models.capabilities.usage.description": "Saadab `stream_options: { include_usage: true }` päringus.\nToetatud teenusepakkujad tagastavad määramisel vastuses tokeni kasutuse teabe.",
 	"settings.admin.models.capabilities.usage.label": "Kasutus",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Mudel võtab vastu pilte sisendina",
 	"settings.admin.models.capabilities.vision.label": "Nägemine",
 	"settings.admin.models.capabilities.webSearch.description": "Mudel saab otsida teavet veebist",

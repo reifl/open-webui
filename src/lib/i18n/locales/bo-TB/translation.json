@@ -2575,6 +2575,8 @@
 	"settings.admin.models.capabilities.title": "ནུས་པ།",
 	"settings.admin.models.capabilities.usage.description": "རེ་ཞུའི་ནང་ `stream_options: { include_usage: true }` གཏོང་བ།\nབཀོད་སྒྲིག་བྱས་ཚེ། རྒྱབ་སྐྱོར་ཡོད་པའི་མཁོ་སྤྲོད་པས་ལན་ནང་ཊོཀ་ཀེན་བེད་སྤྱོད་ཀྱི་གནས་ཚུལ་ཕྱིར་སློག་བྱེད་ངེས།",
 	"settings.admin.models.capabilities.usage.label": "བེད་སྤྱོད།",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "དཔེ་དབྱིབས་ཀྱིས་པར་གྱི་ནང་འཇུག་དང་ལེན་བྱེད།",
 	"settings.admin.models.capabilities.vision.label": "པར་རིས་ངོས་འཛིན།",
 	"settings.admin.models.capabilities.webSearch.description": "དཔེ་དབྱིབས་ཀྱིས་གནས་ཚུལ་ཆེད་དྲ་རྒྱ་འཚོལ་བཤེར་བྱེད་ཐུབ།",

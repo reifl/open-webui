@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Mogelijkheden",
 	"settings.admin.models.capabilities.usage.description": "Stuurt `stream_options: { include_usage: true }` in het verzoek. \nOndersteunde providers zullen informatie over tokengebruik in het antwoord terugsturen als dit aan staat.",
 	"settings.admin.models.capabilities.usage.label": "Gebruik",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model accepteerd afbeeldingsinvoer",
 	"settings.admin.models.capabilities.vision.label": "Visie",
 	"settings.admin.models.capabilities.webSearch.description": "Model kan het web doorzoeken naar informatie",

@@ -107,6 +107,52 @@ async def get_image_base64_from_url(url: str, user=None) -> Optional[str]:
         return None
 
 
+async def get_video_base64_from_url(url: str, user=None) -> Optional[str]:
+    try:
+        if url.startswith('http'):
+            from open_webui.models.config import Config
+
+            max_bytes = None
+            try:
+                max_size_mb = int(await Config.get('rag.file.max_size') or 0)
+            except (TypeError, ValueError):
+                max_size_mb = 0
+            if max_size_mb > 0:
+                max_bytes = max_size_mb * 1024 * 1024
+
+            # See get_image_base64_from_url for the SSRF-hardening rationale.
+            await asyncio.to_thread(validate_url, url)
+            async with get_ssrf_safe_session() as session:
+                async with session.get(
+                    url,
+                    ssl=AIOHTTP_CLIENT_SESSION_SSL,
+                    allow_redirects=AIOHTTP_CLIENT_ALLOW_REDIRECTS,
+                    headers={'Accept-Encoding': 'identity'},
+                ) as response:
+                    response.raise_for_status()
+                    encodings = response.headers.getall('Content-Encoding', ())
+                    if any(encoding.lower() not in ('', 'identity') for encoding in encodings):
+                        return None
+                    video_data = bytearray()
+                    total = 0
+                    async for chunk in response.content.iter_chunked(64 * 1024):
+                        total += len(chunk)
+                        if max_bytes is not None and total > max_bytes:
+                            return None
+                        video_data.extend(chunk)
+                    encoded_string = base64.b64encode(video_data).decode('utf-8')
+                    content_type = response.headers.get('Content-Type', 'video/mp4')
+                    return f'data:{content_type};base64,{encoded_string}'
+        else:
+            # Non-URL string — treat as file_id. Delegate to the canonical
+            # file-ID resolver which enforces ownership/access checks.
+            file_id_match = FILE_CONTENT_URL_PATTERN.match(url)
+            return await get_video_base64_from_file_id(file_id_match.group(1) if file_id_match else url, user=user)
+
+    except Exception:
+        return None
+
+
 async def get_image_url_from_base64(request, base64_image_string, metadata, user):
     if BASE64_IMAGE_URL_PREFIX.match(base64_image_string):
         image_url = ''
@@ -338,5 +384,30 @@ async def get_image_base64_from_file_id(id: str, user=None) -> Optional[str]:
             return f'data:{content_type};base64,{encoded_string}'
         else:
             return None
+    except Exception:
+        return None
+
+
+async def get_video_base64_from_file_id(id: str, user=None) -> Optional[str]:
+    file = await Files.get_file_by_id(id)
+    if not file:
+        return None
+
+    # Same ownership gate as get_image_base64_from_file_id — see there for rationale.
+    if user is None:
+        return None
+    if file.user_id != user.id and user.role != 'admin' and not await has_access_to_file(file.id, 'read', user):
+        return None
+
+    try:
+        file_path = Path(file.path)
+        video_data = await asyncio.to_thread(Storage.read_bytes, file.path)
+        if not video_data:
+            return None
+        encoded_string = base64.b64encode(video_data).decode('utf-8')
+        content_type = mimetypes.guess_type(file_path.name)[0] or (file.meta or {}).get('content_type')
+        if not content_type:
+            return None
+        return f'data:{content_type};base64,{encoded_string}'
     except Exception:
         return None

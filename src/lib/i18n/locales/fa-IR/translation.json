@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "قابلیت",
 	"settings.admin.models.capabilities.usage.description": "ارسال `stream_options: { include_usage: true }` در درخواست.\nارائه دهندگان پشتیبانی شده در صورت تنظیم، اطلاعات استفاده از توکن را در پاسخ برمی گردانند.",
 	"settings.admin.models.capabilities.usage.label": "استفاده",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "مدل ورودی تصویر را می\u200cپذیرد",
 	"settings.admin.models.capabilities.vision.label": "بینایی",
 	"settings.admin.models.capabilities.webSearch.description": "مدل می\u200cتواند وب را برای اطلاعات جستجو کند",

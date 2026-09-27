@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Funktioner",
 	"settings.admin.models.capabilities.usage.description": "Sender `stream_options: { include_usage: true }` i forespørgslen.\nUnderstøttede udbydere vil returnere tokenforbrugsinformation i svaret, når det er indstillet.",
 	"settings.admin.models.capabilities.usage.label": "Forbrug",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model accepterer billedinput",
 	"settings.admin.models.capabilities.vision.label": "Vision",
 	"settings.admin.models.capabilities.webSearch.description": "Model kan søge på internettet efter information",

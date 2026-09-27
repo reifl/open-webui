@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "ئىقتىدارلار",
 	"settings.admin.models.capabilities.usage.description": "تەلەپكە `stream_options: { include_usage: true }` يوللايدۇ.\nقوللايدىغان تەمىنلىگۈچى ئىنكاستا ئىم ئىشلىتىش ئۇچۇرى قايتۇرىدۇ.",
 	"settings.admin.models.capabilities.usage.label": "ئىشلىتىش",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "مودېل رەسىم كىرگۈزۈشنى قوبۇل قىلىدۇ",
 	"settings.admin.models.capabilities.vision.label": "كۆرۈش",
 	"settings.admin.models.capabilities.webSearch.description": "مودېل توردا ئۇچۇر ئىزدەيدۇ",

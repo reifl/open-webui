@@ -8,7 +8,8 @@
 		copyToClipboard as _copyToClipboard,
 		formatMessageTimestamp,
 		formatMessageTimestampFull,
-		isRasterImageContentType
+		isRasterImageContentType,
+		isVideoContentType
 	} from '$lib/utils';
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 	import equal from 'fast-deep-equal';
@@ -186,6 +187,9 @@
 							<div class={($settings?.chatBubble ?? true) ? 'self-end' : ''}>
 								{#if file.type === 'image' || isRasterImageContentType(file?.content_type)}
 									<Image src={fileUrl} imageClassName=" max-h-96 rounded-lg" />
+								{:else if file.type === 'video' || isVideoContentType(file?.content_type)}
+									<!-- svelte-ignore a11y-media-has-caption -->
+									<video src={fileUrl} controls class="max-h-96 rounded-lg"></video>
 								{:else}
 									<FileItem
 										item={file}
@@ -224,6 +228,43 @@
 												alt="input"
 												imageClassName=" size-14 rounded-xl object-cover"
 											/>
+										</div>
+										<div class=" absolute -top-1 -right-1">
+											<button
+												aria-label={$i18n.t('Remove file')}
+												class=" bg-white text-black border border-white rounded-full {($settings?.highContrastMode ??
+												false)
+													? ''
+													: 'hover-reveal transition'}"
+												type="button"
+												on:click={() => {
+													editedFiles.splice(fileIdx, 1);
+
+													editedFiles = editedFiles;
+												}}
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													viewBox="0 0 20 20"
+													fill="currentColor"
+													class="size-4"
+												>
+													<path
+														d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+													/>
+												</svg>
+											</button>
+										</div>
+									</div>
+								{:else if file.type === 'video' || isVideoContentType(file?.content_type)}
+									{@const fileUrl =
+										file.url?.startsWith('data') || file.url?.startsWith('http')
+											? file.url
+											: `${WEBUI_API_BASE_URL}/files/${file.url}${file?.content_type ? '/content' : ''}`}
+									<div class=" relative group">
+										<div class="relative flex items-center">
+											<!-- svelte-ignore a11y-media-has-caption -->
+											<video src={fileUrl} controls class="size-14 rounded-xl object-cover"></video>
 										</div>
 										<div class=" absolute -top-1 -right-1">
 											<button

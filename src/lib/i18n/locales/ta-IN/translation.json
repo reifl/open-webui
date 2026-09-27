@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "திறன்கள்",
 	"settings.admin.models.capabilities.usage.description": "கோரிக்கையில் `stream_options: { include_usage: true }` ஐ அனுப்புகிறது.\nஅமைக்கப்படும் போது ஆதரிக்கப்படும் வழங்குநர்கள் பதிலில் டோக்கன் பயன்பாட்டுத் தகவலைத் தருவார்கள்.",
 	"settings.admin.models.capabilities.usage.label": "பயன்பாடு",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "மாடல் பட உள்ளீடுகளை ஏற்றுக்கொள்கிறது",
 	"settings.admin.models.capabilities.vision.label": "பார்வை",
 	"settings.admin.models.capabilities.webSearch.description": "மாடல் தகவல்களை இணையத்தில் தேடலாம்",

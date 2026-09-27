@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "Mogućnosti",
 	"settings.admin.models.capabilities.usage.description": "Šalje `stream_options: { include_usage: true }` u zahtjevu.\nKada je postavljeno, podržani pružatelji usluga vraćaju podatke o potrošnji tokena u odgovoru.",
 	"settings.admin.models.capabilities.usage.label": "Korištenje",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model prihvaća slike kao ulaz",
 	"settings.admin.models.capabilities.vision.label": "Vid",
 	"settings.admin.models.capabilities.webSearch.description": "Model može pretraživati web radi pronalaženja informacija",

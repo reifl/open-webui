@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "Iespējas",
 	"settings.admin.models.capabilities.usage.description": "Nosūta `stream_options: { include_usage: true }` pieprasījumā.\nAtbalstītie pakalpojumu sniedzēji atgriezīs tokenu lietojuma informāciju atbildē, ja iestatīts.",
 	"settings.admin.models.capabilities.usage.label": "Lietojums",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Modelis pieņem attēlu ievades",
 	"settings.admin.models.capabilities.vision.label": "Redze",
 	"settings.admin.models.capabilities.webSearch.description": "Modelis var meklēt informāciju tīmeklī",

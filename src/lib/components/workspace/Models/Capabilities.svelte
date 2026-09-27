@@ -14,6 +14,10 @@
 			label: $i18n.t('settings.admin.models.capabilities.vision.label'),
 			description: $i18n.t('settings.admin.models.capabilities.vision.description')
 		},
+		video: {
+			label: $i18n.t('settings.admin.models.capabilities.video.label'),
+			description: $i18n.t('settings.admin.models.capabilities.video.description')
+		},
 		file_upload: {
 			label: $i18n.t('settings.admin.models.capabilities.fileUpload.label'),
 			description: $i18n.t('settings.admin.models.capabilities.fileUpload.description')

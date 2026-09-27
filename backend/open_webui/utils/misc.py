@@ -347,8 +347,8 @@ def convert_output_to_messages(
               (for legacy providers that expect reasoning as tagged content).
             - ``'reasoning_content'``: set as ``reasoning_content`` top-level field
               (for llama.cpp, which routes it via the chat template).
-        flatten_tool_images: Move tool output images into a following user
-            message for Chat Completions providers.
+        flatten_tool_images: Move tool output images (and videos) into a following
+            user message for Chat Completions providers.
     """
     if not output or not isinstance(output, list):
         return []
@@ -359,6 +359,7 @@ def convert_output_to_messages(
     pending_reasoning = []  # Only populated for top-level structured reasoning fields.
     pending_reasoning_details = []
     pending_tool_image_urls = []
+    pending_tool_video_urls = []
     pending_tool_outputs = []
     completed_call_ids = {
         item.get('call_id')
@@ -417,6 +418,25 @@ def convert_output_to_messages(
         )
         pending_tool_image_urls = []
 
+    def flush_tool_videos():
+        nonlocal pending_tool_video_urls
+        if not pending_tool_video_urls:
+            return
+
+        messages.append(
+            {
+                'role': 'user',
+                'content': [
+                    {
+                        'type': 'text',
+                        'text': 'Here are the videos from the tool results above. Please analyze them.',
+                    },
+                    *[{'type': 'video_url', 'video_url': {'url': url}} for url in pending_tool_video_urls],
+                ],
+            }
+        )
+        pending_tool_video_urls = []
+
     def flush_tool_outputs():
         nonlocal pending_tool_outputs
         if not pending_tool_outputs:
@@ -427,6 +447,7 @@ def convert_output_to_messages(
             output_parts = output_item.get('output', [])
             content = ''
             image_urls = []
+            video_urls = []
             for part in output_parts:
                 if part.get('type') == 'input_text':
                     output_text = part.get('text', '')
@@ -435,6 +456,10 @@ def convert_output_to_messages(
                     url = part.get('image_url', '')
                     if url:
                         image_urls.append(url)
+                elif part.get('type') == 'input_video':
+                    url = part.get('video_url', '')
+                    if url:
+                        video_urls.append(url)
 
             if flatten_tool_images:
                 messages.append(
@@ -445,7 +470,8 @@ def convert_output_to_messages(
                     }
                 )
                 pending_tool_image_urls.extend(image_urls)
-            elif image_urls:
+                pending_tool_video_urls.extend(video_urls)
+            elif image_urls or video_urls:
                 messages.append(
                     {
                         'role': 'tool',
@@ -453,6 +479,7 @@ def convert_output_to_messages(
                         'content': [
                             {'type': 'input_text', 'text': content},
                             *[{'type': 'input_image', 'image_url': url} for url in image_urls],
+                            *[{'type': 'input_video', 'video_url': url} for url in video_urls],
                         ],
                     }
                 )
@@ -472,6 +499,7 @@ def convert_output_to_messages(
         if item_type not in {'function_call', 'function_call_output'}:
             flush_tool_outputs()
             flush_tool_images()
+            flush_tool_videos()
 
         if item_type == 'message':
             # Extract text from output_text content parts
@@ -569,6 +597,7 @@ def convert_output_to_messages(
     # Flush remaining content/tool_calls
     flush_tool_outputs()
     flush_tool_images()
+    flush_tool_videos()
     flush_pending()
 
     return reconcile_tool_pairs(messages)
@@ -1227,6 +1256,12 @@ def is_raster_image_content_type(content_type: str | None) -> bool:
     """Return True if the content type is an image that decodes as a bitmap; SVG is XML."""
     base_content_type = (content_type or '').split(';')[0].strip().lower()
     return base_content_type.startswith('image/') and base_content_type != 'image/svg+xml'
+
+
+def is_video_content_type(content_type: str | None) -> bool:
+    """Return True if the content type is a video."""
+    base_content_type = (content_type or '').split(';')[0].strip().lower()
+    return base_content_type.startswith('video/')
 
 
 def extract_urls(text: str) -> list[str]:

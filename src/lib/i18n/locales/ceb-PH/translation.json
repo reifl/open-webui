@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Mga kapabilidad",
 	"settings.admin.models.capabilities.usage.description": "Magpadala og `stream_options: { include_usage: true }` sulod sa hangyo.\nKon gitakda, ang mga tighatag nga mosuporta niini mobalik og impormasyon sa paggamit sa token sulod sa tubag.",
 	"settings.admin.models.capabilities.usage.label": "Paggamit",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Modawat ang modelo og mga hulagway isip input",
 	"settings.admin.models.capabilities.vision.label": "Pag-ila sa hulagway",
 	"settings.admin.models.capabilities.webSearch.description": "Makapangita ang modelo og impormasyon sa web",

@@ -1362,6 +1362,10 @@ def convert_to_responses_payload(payload: dict) -> dict:
                         url = url_data if isinstance(url_data, str) else ''
                         detail = 'auto'
                     content_parts.append({'type': 'input_image', 'image_url': url, 'detail': detail})
+                elif part.get('type') == 'video_url':
+                    url_data = part.get('video_url', {})
+                    url = url_data.get('url', '') if isinstance(url_data, dict) else (url_data or '')
+                    content_parts.append({'type': 'input_video', 'video_url': url})
                 elif part.get('type') == 'file':
                     # OpenAI-compatible proxy path only. Open WebUI attachments are handled
                     # separately via metadata.files/RAG and must not be converted here.

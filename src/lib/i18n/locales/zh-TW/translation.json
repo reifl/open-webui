@@ -2575,6 +2575,8 @@
 	"settings.admin.models.capabilities.title": "功能",
 	"settings.admin.models.capabilities.usage.description": "在請求中傳送 `stream_options: { include_usage: true }`。\n設定後，支援的提供者將在回應中回傳權杖使用資訊。",
 	"settings.admin.models.capabilities.usage.label": "使用量",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "模型接受影像輸入",
 	"settings.admin.models.capabilities.vision.label": "視覺",
 	"settings.admin.models.capabilities.webSearch.description": "模型可透過網路搜尋資訊",

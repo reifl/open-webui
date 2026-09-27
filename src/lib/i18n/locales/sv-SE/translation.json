@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Förmågor",
 	"settings.admin.models.capabilities.usage.description": "Skickar `stream_options: { include_usage: true }` i begäran.\nLeverantörer som stöds returnerar information om tokenanvändning i svaret när det är inställt.",
 	"settings.admin.models.capabilities.usage.label": "Användning",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Modellen accepterar bildinmatningar",
 	"settings.admin.models.capabilities.vision.label": "Syn",
 	"settings.admin.models.capabilities.webSearch.description": "Modellen kan söka på webben efter information",

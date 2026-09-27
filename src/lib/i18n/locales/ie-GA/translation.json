@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Cumais",
 	"settings.admin.models.capabilities.usage.description": "Seolann `stream_options: { include_usage: true }` san iarratas.\nTabharfaidh soláthraithe a fhaigheann tacaíocht faisnéis úsáide chomharthaí ar ais sa fhreagra nuair a bheidh sé socraithe.",
 	"settings.admin.models.capabilities.usage.label": "Úsáid",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Glacann an tsamhail le hionchuir íomhá",
 	"settings.admin.models.capabilities.vision.label": "Fís",
 	"settings.admin.models.capabilities.webSearch.description": "Is féidir leis an tsamhail cuardach a dhéanamh ar an ngréasán le haghaidh faisnéise",

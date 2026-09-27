@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "সক্ষমতা",
 	"settings.admin.models.capabilities.usage.description": "অনুরোধে `stream_options: { include_usage: true }` পাঠায়।\nএটি সেট করা থাকলে সমর্থিত প্রদানকারীরা উত্তরে টোকেন ব্যবহারের তথ্য ফেরত দেবে।",
 	"settings.admin.models.capabilities.usage.label": "ব্যবহার",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "মডেল ছবি ইনপুট গ্রহণ করে",
 	"settings.admin.models.capabilities.vision.label": "দৃষ্টিশক্তি",
 	"settings.admin.models.capabilities.webSearch.description": "মডেল ওয়েব থেকে তথ্য অনুসন্ধান করতে পারে",

@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "Capacités",
 	"settings.admin.models.capabilities.usage.description": "Envoie `stream_options: { include_usage: true }` dans la requête.\nLes fournisseurs pris en charge renverront des informations sur l'utilisation des tokens dans la réponse lorsque cette option est activée.",
 	"settings.admin.models.capabilities.usage.label": "Consommation de tokens",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Le modèle accepte des images en entrée",
 	"settings.admin.models.capabilities.vision.label": "Vision",
 	"settings.admin.models.capabilities.webSearch.description": "Le modèle peut faire des recherches sur internet pour trouver des informations",

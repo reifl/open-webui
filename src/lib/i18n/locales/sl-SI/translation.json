@@ -2623,6 +2623,8 @@
 	"settings.admin.models.capabilities.title": "Zmožnosti",
 	"settings.admin.models.capabilities.usage.description": "Sends `stream_options: { include_usage: true }` in the request.\nSupported providers will return token usage information in the response when set.",
 	"settings.admin.models.capabilities.usage.label": "Usage",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model accepts image inputs",
 	"settings.admin.models.capabilities.vision.label": "Vision",
 	"settings.admin.models.capabilities.webSearch.description": "Model can search the web for information",

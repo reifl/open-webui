@@ -2860,6 +2860,47 @@ async def view_file(
         return JSONCodec.dumps({'error': str(e)})
 
 
+async def view_video(
+    file_id: str,
+    __user__: dict = None,
+) -> str:
+    """
+    Watch a video file attached to this chat by its ID. Only call this when you actually
+    need to see the video content (e.g. to answer a question about what it shows) — the
+    video is not automatically kept in the conversation on every turn.
+
+    :param file_id: The ID of the video file to watch
+    :return: The video content for analysis, or a JSON error object if it can't be read
+    """
+    if not __user__:
+        return JSONCodec.dumps({'error': 'User context not available'})
+
+    try:
+        from open_webui.models.files import Files
+        from open_webui.utils.files import get_video_base64_from_file_id
+        from open_webui.utils.misc import is_video_content_type
+
+        file = await Files.get_file_by_id(file_id)
+        if not file:
+            return JSONCodec.dumps({'error': 'File not found'})
+
+        if not await _has_read_access_to_file(file, __user__):
+            return JSONCodec.dumps({'error': 'File not found'})
+
+        content_type = (file.meta or {}).get('content_type')
+        if not is_video_content_type(content_type):
+            return JSONCodec.dumps({'error': 'File is not a video'})
+
+        data_url = await get_video_base64_from_file_id(file_id, user=UserModel(**__user__))
+        if not data_url:
+            return JSONCodec.dumps({'error': 'Video could not be read'})
+
+        return data_url
+    except Exception as e:
+        log.exception(f'view_video error: {e}')
+        return JSONCodec.dumps({'error': str(e)})
+
+
 async def view_knowledge_file(
     file_id: str,
     offset: int = 0,

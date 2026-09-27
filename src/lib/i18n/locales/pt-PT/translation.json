@@ -2607,6 +2607,8 @@
 	"settings.admin.models.capabilities.title": "Capacidades",
 	"settings.admin.models.capabilities.usage.description": "Envia `stream_options: { include_usage: true }` na solicitação.\nOs provedores suportados retornarão informações de uso de tokens na resposta quando definido.",
 	"settings.admin.models.capabilities.usage.label": "Uso",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "O modelo aceita entradas de imagens",
 	"settings.admin.models.capabilities.vision.label": "Visão",
 	"settings.admin.models.capabilities.webSearch.description": "O modelo pode pesquisar na web por informações",

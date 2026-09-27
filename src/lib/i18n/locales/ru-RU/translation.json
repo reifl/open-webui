@@ -2623,6 +2623,8 @@
 	"settings.admin.models.capabilities.title": "Возможности",
 	"settings.admin.models.capabilities.usage.description": "Отправляет в запросе \"stream_options: { include_usage: true }\".\nПоддерживаемые провайдеры будут возвращать информацию об использовании токена в ответе, когда это будет установлено.",
 	"settings.admin.models.capabilities.usage.label": "Использование",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Модель принимает изображения как входные данные",
 	"settings.admin.models.capabilities.vision.label": "Видение",
 	"settings.admin.models.capabilities.webSearch.description": "Модель может искать информацию через поисковую систему",

@@ -115,6 +115,7 @@ export const SUPPORTED_FILE_EXTENSIONS = [
 export const DEFAULT_CAPABILITIES = {
 	file_context: true,
 	vision: true,
+	video: false,
 	file_upload: true,
 	web_search: true,
 	image_generation: true,

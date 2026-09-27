@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Imkoniyatlar",
 	"settings.admin.models.capabilities.usage.description": "So‘rovda `stream_options: { include_usage: true }` yuboradi.\nQo'llab-quvvatlanadigan provayderlar o'rnatilganda javobda token foydalanish ma'lumotlarini qaytaradi.",
 	"settings.admin.models.capabilities.usage.label": "Foydalanish",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Model rasm kiritishni qabul qiladi",
 	"settings.admin.models.capabilities.vision.label": "Vizyon",
 	"settings.admin.models.capabilities.webSearch.description": "Model ma'lumot uchun Internetda qidirishi mumkin",

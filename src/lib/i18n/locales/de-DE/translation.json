@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Fähigkeiten",
 	"settings.admin.models.capabilities.usage.description": "Sendet `stream_options: { include_usage: true }` in der Anfrage.\nUnterstützte Anbieter geben Token-Nutzungsinformationen in der Antwort zurück, wenn dies gesetzt ist.",
 	"settings.admin.models.capabilities.usage.label": "Nutzung",
+	"settings.admin.models.capabilities.video.description": "Modell akzeptiert Videoeingaben",
+	"settings.admin.models.capabilities.video.label": "Videoerkennung",
 	"settings.admin.models.capabilities.vision.description": "Modell akzeptiert Bildeingaben",
 	"settings.admin.models.capabilities.vision.label": "Bilderkennung",
 	"settings.admin.models.capabilities.webSearch.description": "Modell kann das Web nach Informationen durchsuchen",

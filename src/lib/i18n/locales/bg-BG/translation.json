@@ -2591,6 +2591,8 @@
 	"settings.admin.models.capabilities.title": "Възможности",
 	"settings.admin.models.capabilities.usage.description": "Изпраща `stream_options: { include_usage: true }` в заявката.\nПри активиране поддържаните доставчици връщат информация за използваните токени в отговора.",
 	"settings.admin.models.capabilities.usage.label": "Използване",
+	"settings.admin.models.capabilities.video.description": "",
+	"settings.admin.models.capabilities.video.label": "",
 	"settings.admin.models.capabilities.vision.description": "Моделът приема входни изображения",
 	"settings.admin.models.capabilities.vision.label": "Зрение",
 	"settings.admin.models.capabilities.webSearch.description": "Моделът може да търси информация в уеб",
